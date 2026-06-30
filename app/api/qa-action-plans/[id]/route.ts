@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyToken } from "@/lib/auth";
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const sessionToken = req.cookies.get('uniqualis_session')?.value;
     if (!sessionToken) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
