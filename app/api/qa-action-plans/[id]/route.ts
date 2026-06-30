@@ -12,7 +12,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { id } = params;
+    const { id } = await params;
     const { status, officialNotes } = await req.json();
 
     if (!["PENDING_REVIEW", "APPROVED", "NEEDS_REVISION"].includes(status)) {
