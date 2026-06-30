@@ -1,0 +1,246 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// -----------------------------------------------------------------------------
+// ENUMS
+// -----------------------------------------------------------------------------
+enum Role {
+  STUDENT
+  LECTURER
+  OFFICIAL // Deans, HODs
+  ADMIN    // QA Officer, System Admin
+}
+
+// -----------------------------------------------------------------------------
+// CORE ACADEMIC INFRASTRUCTURE
+// -----------------------------------------------------------------------------
+model Faculty {
+  id          String       @id @default(uuid())
+  name        String       @unique
+  departments Department[]
+  officials   User[]       @relation("FacultyOfficials")
+  students    User[]       @relation("StudentFaculty")
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model Department {
+  id          String       @id @default(uuid())
+  name        String
+  facultyId   String
+  faculty     Faculty      @relation(fields: [facultyId], references: [id], onDelete: Cascade)
+  courses     Course[]
+  lecturers   User[]       @relation("LecturerDepartment")
+  officials   User[]       @relation("DepartmentOfficials")
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@unique([name, facultyId])
+}
+
+model Course {
+  id           String       @id @default(uuid())
+  code         String       @unique // e.g., CS101
+  title        String
+  departmentId String
+  department   Department   @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  lecturers    CourseLecturer[]
+  evaluations  Evaluation[]
+  enrollments  StudentEnrollment[]
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+}
+
+// -----------------------------------------------------------------------------
+// USER MANAGEMENT & RBAC
+// -----------------------------------------------------------------------------
+model ProvisionedAccount {
+  id          String   @id @default(uuid())
+  email       String   @unique
+  role        Role
+  
+  // Scopes
+  facultyId    String? 
+  departmentId String? 
+  
+  isClaimed   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model User {
+  id              String    @id @default(uuid())
+  email           String    @unique
+  passwordHash    String
+  firstName       String
+  lastName        String
+  role            Role
+  profileImageUrl String?   // Hosted on Cloudinary
+
+  // Relationships based on Role
+  studentFacultyId String?
+  studentFaculty   Faculty? @relation("StudentFaculty", fields: [studentFacultyId], references: [id])
+  studentIdNumber  String?  @unique // specific to STUDENT
+
+  lecturerDepartmentId String?
+  lecturerDepartment   Department? @relation("LecturerDepartment", fields: [lecturerDepartmentId], references: [id])
+  coursesTaught        CourseLecturer[]
+
+  // For Officials (Deans/HODs) restricted to specific scopes
+  officialFacultyId    String?
+  officialFaculty      Faculty?    @relation("FacultyOfficials", fields: [officialFacultyId], references: [id])
+  officialDepartmentId String?
+  officialDepartment   Department? @relation("DepartmentOfficials", fields: [officialDepartmentId], references: [id])
+
+  evaluationsGiven    Evaluation[]          @relation("StudentEvaluations")
+  studentEnrollments  StudentEnrollment[]   @relation("StudentEnrollments")
+  adminCommentsMade   AdministrativeComment[]
+  lecturerResponses   LecturerResponse[]
+  notifications       Notification[]        @relation("UserNotifications")
+  
+  // Settings / Preferences
+  notifyWeeklyDigest  Boolean @default(true)
+  notifyLowAverage    Boolean @default(true)
+  notifyEvalWindow    Boolean @default(true)
+  notifySubmissionReceipt Boolean @default(true)
+  
+  // Professional Information (For Lecturers)
+  title               String?
+  officeHours         String?
+  shortBio            String?   @db.Text
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model CourseLecturer {
+  id         String   @id @default(uuid())
+  courseId   String
+  lecturerId String
+  course     Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lecturer   User     @relation(fields: [lecturerId], references: [id], onDelete: Cascade)
+  
+  evaluations Evaluation[]
+
+  @@unique([courseId, lecturerId])
+}
+
+// -----------------------------------------------------------------------------
+// EVALUATIONS & FEEDBACK ENGINE
+// -----------------------------------------------------------------------------
+model Evaluation {
+  id               String         @id @default(uuid())
+  courseId         String
+  course           Course         @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  courseLecturerId String
+  courseLecturer   CourseLecturer @relation(fields: [courseLecturerId], references: [id], onDelete: Cascade)
+  
+  // Anonymity Protection: The student relation exists to prevent duplicate submissions,
+  // but application logic MUST NOT expose this relation to lecturers or officials.
+  studentId        String
+  student          User           @relation("StudentEvaluations", fields: [studentId], references: [id])
+  
+  academicDate     DateTime
+  timeSlot         String
+  
+  ratingQuantitative Int          // 1 to 5 Stars
+  ratingQualitative  String?      @db.Text
+  isFlagged          Boolean        @default(false)
+
+  // AI-Powered Analysis
+  sentimentScore     String?        // POSITIVE, NEUTRAL, NEGATIVE
+  themes             String[]       // Array of tags e.g. ["Course Pacing", "Exam Difficulty"]
+
+  adminComments      AdministrativeComment[]
+  lecturerResponse   LecturerResponse?
+
+  createdAt        DateTime       @default(now())
+
+  @@unique([studentId, courseLecturerId, academicDate]) // Prevent double evaluation
+}
+
+model LecturerResponse {
+  id             String     @id @default(uuid())
+  evaluationId   String     @unique
+  evaluation     Evaluation @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
+  lecturerId     String
+  lecturer       User       @relation(fields: [lecturerId], references: [id])
+  
+  content        String     @db.Text
+  status         String     @default("PENDING_REVIEW") // PENDING_REVIEW, APPROVED, NEEDS_REVISION
+  officialNotes  String?    @db.Text
+  
+  attachments    Attachment[]
+  
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+}
+
+model AdministrativeComment {
+  id             String     @id @default(uuid())
+  evaluationId   String
+  evaluation     Evaluation @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
+  officialId     String
+  official       User       @relation(fields: [officialId], references: [id])
+  
+  content        String     @db.Text
+  isCommendation Boolean    @default(false)
+  
+  attachments    Attachment[]
+  
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+}
+
+model Attachment {
+  id                    String                 @id @default(uuid())
+  url                   String                 // Cloudinary URL
+  publicId              String                 // Cloudinary Public ID
+  fileName              String
+  fileType              String                 // e.g., image/png, application/pdf
+  
+  lecturerResponseId    String?
+  lecturerResponse      LecturerResponse?      @relation(fields: [lecturerResponseId], references: [id], onDelete: Cascade)
+  
+  adminCommentId        String?
+  adminComment          AdministrativeComment? @relation(fields: [adminCommentId], references: [id], onDelete: Cascade)
+  
+  createdAt             DateTime               @default(now())
+}
+
+model Notification {
+  id          String   @id @default(uuid())
+  recipientId String
+  recipient   User     @relation("UserNotifications", fields: [recipientId], references: [id], onDelete: Cascade)
+  
+  title       String
+  message     String
+  isRead      Boolean  @default(false)
+  link        String?
+  
+  createdAt   DateTime @default(now())
+}
+
+model StudentEnrollment {
+  id           String   @id @default(uuid())
+  studentId    String
+  student      User     @relation("StudentEnrollments", fields: [studentId], references: [id], onDelete: Cascade)
+  courseId     String
+  course       Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  
+  academicYear String   // e.g. "2026-2027"
+  semester     Int      // 1 or 2
+  
+  createdAt    DateTime @default(now())
+
+  @@unique([studentId, courseId, academicYear, semester])
+}

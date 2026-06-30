@@ -1,0 +1,214 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { FileText, CheckCircle, AlertTriangle, LayoutTemplate, Loader2, ArrowRight, Bell, Zap, Clock, ShieldCheck } from "lucide-react";
+import { motion } from "motion/react";
+
+interface MetricsData {
+  totalEvaluations: number;
+  totalDepartments: number;
+  flaggedReports: number;
+}
+
+export function AdminDashboard() {
+  const [data, setData] = useState<MetricsData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchMetrics = async () => {
+      try {
+        const response = await fetch('/api/admin/metrics');
+        if (!response.ok) throw new Error('Failed to fetch metrics');
+        const json = await response.json();
+        setData(json);
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchMetrics();
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-full w-full p-12">
+        <Loader2 className="w-8 h-8 text-indigo-500 animate-spin" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-full w-full p-12">
+        <div className="bg-red-50 text-red-600 p-4 rounded-xl flex items-center gap-2 border border-red-100 shadow-sm">
+          <AlertTriangle className="w-5 h-5" />
+          <span className="font-medium">{error}</span>
+        </div>
+      </div>
+    );
+  }
+
+  const { totalEvaluations, totalDepartments, flaggedReports } = data || {
+    totalEvaluations: 0,
+    totalDepartments: 0,
+    flaggedReports: 0,
+  };
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } }
+  };
+
+  return (
+    <motion.div 
+      initial="hidden"
+      animate="visible"
+      variants={containerVariants}
+      className="p-4 md:p-8 max-w-[1400px] mx-auto space-y-6"
+    >
+      
+      {/* Header Area */}
+      <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-2">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Operational Command Center</h1>
+          <p className="text-sm text-slate-500 mt-1">Real-time system status and immediate actions.</p>
+        </div>
+        <div className="flex gap-3">
+          <div className="h-10 px-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 flex items-center gap-2 text-sm font-semibold shadow-sm">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            System Online
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Top 3 Stat Cards */}
+      <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <div className="bg-white rounded-3xl p-6 shadow-[0_4px_24px_rgba(0,0,0,0.02)] border border-slate-200/60 flex flex-col justify-between aspect-[4/3] group hover:border-blue-200 transition-colors">
+            <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600 mb-4 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+              <CheckCircle className="w-6 h-6" />
+            </div>
+            <div>
+              <p className="text-slate-500 text-sm font-semibold uppercase tracking-wide mb-1">Active Evaluations</p>
+              <h2 className="text-4xl font-bold text-slate-900 tracking-tight">{totalEvaluations.toLocaleString()}</h2>
+            </div>
+        </div>
+        <div className="bg-white rounded-3xl p-6 shadow-[0_4px_24px_rgba(0,0,0,0.02)] border border-slate-200/60 flex flex-col justify-between aspect-[4/3] group hover:border-emerald-200 transition-colors">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600 mb-4 group-hover:bg-emerald-500 group-hover:text-white transition-colors">
+              <LayoutTemplate className="w-6 h-6" />
+            </div>
+            <div>
+              <p className="text-slate-500 text-sm font-semibold uppercase tracking-wide mb-1">Departments Evaluated</p>
+              <h2 className="text-4xl font-bold text-slate-900 tracking-tight">{totalDepartments.toLocaleString()}</h2>
+            </div>
+        </div>
+        <div className="bg-white rounded-3xl p-6 shadow-[0_4px_24px_rgba(0,0,0,0.02)] border border-slate-200/60 flex flex-col justify-between aspect-[4/3] group hover:border-amber-200 transition-colors">
+            <div className="w-12 h-12 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-600 mb-4 group-hover:bg-amber-500 group-hover:text-white transition-colors">
+              <AlertTriangle className="w-6 h-6" />
+            </div>
+            <div>
+              <p className="text-slate-500 text-sm font-semibold uppercase tracking-wide mb-1">Action Required</p>
+              <div className="flex items-baseline gap-2">
+                <h2 className="text-4xl font-bold text-slate-900 tracking-tight">{flaggedReports.toLocaleString()}</h2>
+                <span className="text-sm font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-100">alerts</span>
+              </div>
+            </div>
+        </div>
+      </motion.div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Critical Alerts Feed */}
+        <motion.div variants={itemVariants} className="bg-white rounded-3xl p-6 md:p-8 shadow-[0_4px_24px_rgba(0,0,0,0.02)] border border-slate-200/60 flex flex-col h-[500px]">
+          <div className="flex justify-between items-center mb-6">
+            <div>
+              <h3 className="text-lg font-semibold text-slate-900 tracking-tight flex items-center gap-2">
+                <Bell className="w-5 h-5 text-amber-500" />
+                Live Alert Feed
+              </h3>
+              <p className="text-xs text-slate-500 mt-1">Issues requiring immediate attention.</p>
+            </div>
+            <button className="text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors">Mark all read</button>
+          </div>
+          
+          <div className="flex-1 overflow-y-auto pr-2 space-y-3 custom-scrollbar">
+            {[
+              { title: "Severe language violation in CS301 feedback", time: "10 mins ago", type: "critical" },
+              { title: "Evaluation participation dropped below 40% in Math Dept", time: "1 hour ago", type: "warning" },
+              { title: "5 lecturers missed response deadline", time: "2 hours ago", type: "warning" },
+              { title: "System error during bulk data sync", time: "4 hours ago", type: "critical" },
+              { title: "New high-praise review flagged for 'Best Practices' showcase", time: "5 hours ago", type: "info" }
+            ].map((alert, i) => (
+              <div key={i} className="flex gap-4 p-4 rounded-2xl border border-slate-100 bg-slate-50/50 hover:bg-white hover:shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:border-slate-200 transition-all group cursor-pointer">
+                <div className={`mt-0.5 shrink-0 w-2 h-2 rounded-full ${alert.type === 'critical' ? 'bg-red-500' : alert.type === 'warning' ? 'bg-amber-500' : 'bg-blue-500'}`} />
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-slate-800 leading-snug group-hover:text-blue-600 transition-colors">{alert.title}</p>
+                  <div className="flex items-center gap-1.5 mt-2">
+                    <Clock className="w-3.5 h-3.5 text-slate-400" />
+                    <span className="text-xs text-slate-500 font-medium">{alert.time}</span>
+                  </div>
+                </div>
+                <ArrowRight className="w-4 h-4 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+              </div>
+            ))}
+          </div>
+        </motion.div>
+
+        {/* Quick Actions Matrix */}
+        <motion.div variants={itemVariants} className="bg-slate-900 rounded-3xl p-6 md:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.12)] text-white relative overflow-hidden flex flex-col h-[500px]">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-[80px]"></div>
+          
+          <div className="relative z-10 mb-8">
+            <h3 className="text-xl font-bold tracking-tight flex items-center gap-2">
+              <Zap className="w-5 h-5 text-blue-400" />
+              Quick Actions
+            </h3>
+            <p className="text-sm text-slate-400 mt-1">Frequent administrative tasks.</p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 relative z-10">
+            <button className="flex flex-col items-start p-5 rounded-2xl bg-white/5 border border-white/10 hover:bg-blue-600/20 hover:border-blue-500/30 transition-all text-left group">
+              <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-400 mb-4 group-hover:scale-110 transition-transform">
+                <LayoutTemplate className="w-5 h-5" />
+              </div>
+              <h4 className="font-semibold text-white mb-1">Open Evaluation Window</h4>
+              <p className="text-xs text-slate-400 line-clamp-2">Start a new campus-wide evaluation period.</p>
+            </button>
+            
+            <button className="flex flex-col items-start p-5 rounded-2xl bg-white/5 border border-white/10 hover:bg-amber-500/20 hover:border-amber-500/30 transition-all text-left group">
+              <div className="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center text-amber-400 mb-4 group-hover:scale-110 transition-transform">
+                <Bell className="w-5 h-5" />
+              </div>
+              <h4 className="font-semibold text-white mb-1">Send Reminders</h4>
+              <p className="text-xs text-slate-400 line-clamp-2">Dispatch automated email reminders to pending students.</p>
+            </button>
+
+            <button className="flex flex-col items-start p-5 rounded-2xl bg-white/5 border border-white/10 hover:bg-emerald-500/20 hover:border-emerald-500/30 transition-all text-left group">
+              <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center text-emerald-400 mb-4 group-hover:scale-110 transition-transform">
+                <ShieldCheck className="w-5 h-5" />
+              </div>
+              <h4 className="font-semibold text-white mb-1">Review Flagged Feed</h4>
+              <p className="text-xs text-slate-400 line-clamp-2">Resolve 12 pending flagged submissions manually.</p>
+            </button>
+
+            <button className="flex flex-col items-start p-5 rounded-2xl bg-white/5 border border-white/10 hover:bg-indigo-500/20 hover:border-indigo-500/30 transition-all text-left group">
+              <div className="w-10 h-10 rounded-xl bg-indigo-500/20 flex items-center justify-center text-indigo-400 mb-4 group-hover:scale-110 transition-transform">
+                <FileText className="w-5 h-5" />
+              </div>
+              <h4 className="font-semibold text-white mb-1">Extract Executive Summary</h4>
+              <p className="text-xs text-slate-400 line-clamp-2">Download a 1-page digest of current term metrics.</p>
+            </button>
+          </div>
+        </motion.div>
+      </div>
+
+    </motion.div>
+  );
+}
+
+
