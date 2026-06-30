@@ -29,6 +29,7 @@ model Faculty {
   departments Department[]
   officials   User[]       @relation("FacultyOfficials")
   students    User[]       @relation("StudentFaculty")
+  provisionedAccounts ProvisionedAccount[] @relation("ProvisionedFaculty")
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 }
@@ -41,6 +42,7 @@ model Department {
   courses     Course[]
   lecturers   User[]       @relation("LecturerDepartment")
   officials   User[]       @relation("DepartmentOfficials")
+  provisionedAccounts ProvisionedAccount[] @relation("ProvisionedDepartment")
   evaluationTemplates EvaluationTemplate[]
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
@@ -71,7 +73,9 @@ model ProvisionedAccount {
   
   // Scopes
   facultyId    String? 
+  faculty      Faculty?    @relation("ProvisionedFaculty", fields: [facultyId], references: [id])
   departmentId String? 
+  department   Department? @relation("ProvisionedDepartment", fields: [departmentId], references: [id])
   
   isClaimed   Boolean  @default(false)
   createdAt   DateTime @default(now())
