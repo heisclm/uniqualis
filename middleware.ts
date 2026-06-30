@@ -25,6 +25,9 @@ export async function middleware(request: NextRequest) {
   const sessionToken = request.cookies.get('uniqualis_session')?.value;
 
   if (!sessionToken) {
+    if (pathname.startsWith('/api/')) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
     const loginUrl = new URL('/login', request.url);
     loginUrl.searchParams.set('callbackUrl', encodeURI(pathname));
     return NextResponse.redirect(loginUrl);
@@ -39,19 +42,23 @@ export async function middleware(request: NextRequest) {
 
     const userRole = payload.role as string;
 
-    if (pathname.startsWith(PORTAL_ROUTES.STUDENT) && userRole !== 'STUDENT') {
+    if ((pathname.startsWith(PORTAL_ROUTES.STUDENT) || pathname.startsWith('/api/student')) && userRole !== 'STUDENT') {
+      if (pathname.startsWith('/api/')) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
       return NextResponse.redirect(new URL('/unauthorized', request.url));
     }
     
-    if (pathname.startsWith(PORTAL_ROUTES.LECTURER) && userRole !== 'LECTURER') {
+    if ((pathname.startsWith(PORTAL_ROUTES.LECTURER) || pathname.startsWith('/api/lecturer')) && userRole !== 'LECTURER') {
+      if (pathname.startsWith('/api/')) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
       return NextResponse.redirect(new URL('/unauthorized', request.url));
     }
     
-    if (pathname.startsWith(PORTAL_ROUTES.OFFICIAL) && userRole !== 'OFFICIAL' && userRole !== 'ADMIN') {
+    if ((pathname.startsWith(PORTAL_ROUTES.OFFICIAL) || pathname.startsWith('/api/official')) && userRole !== 'OFFICIAL' && userRole !== 'ADMIN') {
+      if (pathname.startsWith('/api/')) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
       return NextResponse.redirect(new URL('/unauthorized', request.url));
     }
     
-    if (pathname.startsWith(PORTAL_ROUTES.ADMIN) && userRole !== 'ADMIN') {
+    if ((pathname.startsWith(PORTAL_ROUTES.ADMIN) || pathname.startsWith('/api/admin')) && userRole !== 'ADMIN') {
+      if (pathname.startsWith('/api/')) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
       return NextResponse.redirect(new URL('/unauthorized', request.url));
     }
 
@@ -66,6 +73,9 @@ export async function middleware(request: NextRequest) {
     });
 
   } catch (error) {
+    if (pathname.startsWith('/api/')) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
     const loginUrl = new URL('/login', request.url);
     return NextResponse.redirect(loginUrl);
   }
@@ -73,6 +83,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+    '/((?!_next/static|_next/image|favicon.ico).*)',
   ],
 };

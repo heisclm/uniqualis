@@ -121,6 +121,8 @@ model User {
   
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
+  
+  @@index([role])
 }
 
 model CourseLecturer {
@@ -133,6 +135,8 @@ model CourseLecturer {
   evaluations Evaluation[]
 
   @@unique([courseId, lecturerId])
+  @@index([courseId])
+  @@index([lecturerId])
 }
 
 // -----------------------------------------------------------------------------
@@ -170,6 +174,9 @@ model Evaluation {
   createdAt        DateTime       @default(now())
 
   @@unique([studentId, courseLecturerId, academicDate]) // Prevent double evaluation
+  @@index([courseId])
+  @@index([courseLecturerId])
+  @@index([studentId])
 }
 
 model LecturerResponse {
@@ -232,6 +239,9 @@ model Notification {
   link        String?
   
   createdAt   DateTime @default(now())
+  
+  @@index([recipientId, isRead])
+  @@index([createdAt])
 }
 
 model StudentEnrollment {
@@ -247,6 +257,8 @@ model StudentEnrollment {
   createdAt    DateTime @default(now())
 
   @@unique([studentId, courseId, academicYear, semester])
+  @@index([studentId])
+  @@index([courseId])
 }
 
 model EvaluationTemplate {

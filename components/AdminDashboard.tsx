@@ -21,19 +21,36 @@ export function AdminDashboard({ onNavigate }: { onNavigate?: (view: string) => 
   const [isExtractingSummary, setIsExtractingSummary] = useState(false);
 
   useEffect(() => {
+    let isMounted = true;
     const fetchMetrics = async () => {
       try {
         const response = await fetch('/api/admin/metrics');
         if (!response.ok) throw new Error('Failed to fetch metrics');
         const json = await response.json();
-        setData(json);
+        if (isMounted) {
+           setData(json);
+           setError(null);
+        }
       } catch (err: any) {
-        setError(err.message);
+        if (isMounted) {
+           setData((prev) => {
+             if (!prev) setError(err.message);
+             return prev;
+           });
+        }
       } finally {
-        setIsLoading(false);
+        if (isMounted) {
+           setIsLoading(false);
+        }
       }
     };
+
     fetchMetrics();
+    const interval = setInterval(fetchMetrics, 15000); // Poll every 15s for "Live" feel
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
   }, []);
 
   const handleToggleEvaluation = async () => {

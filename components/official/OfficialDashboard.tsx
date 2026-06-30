@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Loader2, AlertTriangle, ShieldCheck, TrendingDown, BookOpen, Users } from "lucide-react";
 import { OfficialEvaluationCard, type EvaluationForOfficial } from "@/components/official/OfficialEvaluationCard";
 import { EmptyFeed } from "@/components/lecturer/EmptyFeed"; // Assuming this is generic enough
@@ -12,7 +12,7 @@ export function OfficialDashboard() {
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all' | 'flagged'>('all');
 
-  const fetchEvaluations = async () => {
+  const fetchEvaluations = useCallback(async () => {
     try {
       const response = await fetch('/api/official/evaluations');
       if (!response.ok) {
@@ -24,17 +24,29 @@ export function OfficialDashboard() {
         pendingQAPlansCount: data.pendingQAPlansCount || 0,
         atRiskCoursesCount: data.atRiskCoursesCount || 0
       });
+      setError(null);
     } catch (err: any) {
-      setError(err.message);
+      setEvaluations((prev) => {
+         if (prev.length === 0) setError(err.message);
+         return prev;
+      });
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchEvaluations();
-  }, []);
+    let isMounted = true;
+    const poll = async () => {
+       await fetchEvaluations();
+    };
+    poll();
+    const interval = setInterval(poll, 15000); // Live poll
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, [fetchEvaluations]);
 
   if (isLoading) {
     return (
