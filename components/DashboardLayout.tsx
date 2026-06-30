@@ -27,7 +27,7 @@ interface DashboardLayoutProps {
 export function DashboardLayout({ userRole }: DashboardLayoutProps) {
   const [currentView, setCurrentView] = useState("dashboard");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [user, setUser] = useState<{ firstName: string; lastName: string; profileImageUrl?: string | null } | null>(null);
+  const [user, setUser] = useState<{ id?: string; firstName: string; lastName: string; email: string; profileImageUrl?: string | null } | null>(null);
 
   useEffect(() => {
     const fetchUser = async () => {
