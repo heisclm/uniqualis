@@ -6,7 +6,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     const userId = req.headers.get("x-user-id");
     const role = req.headers.get("x-user-role");
 
-    if (!userId || role !== "OFFICIAL") {
+    if (!userId || (role !== "OFFICIAL" && role !== "ADMIN")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 

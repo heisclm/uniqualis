@@ -40,7 +40,7 @@ export function DashboardLayout({ userRole }: DashboardLayoutProps) {
           }
         }
       } catch (err) {
-        console.error("Failed to fetch user data:", err);
+        console.warn("Failed to fetch user data:", err);
       }
     };
     fetchUser();

@@ -37,7 +37,7 @@ export function TopBar({
           }
         }
       } catch (err) {
-        console.error("Failed to fetch notifications:", err);
+        console.warn("Failed to fetch notifications:", err);
       }
     };
     
@@ -61,7 +61,7 @@ export function TopBar({
         setIsNotificationOpen(false);
       }
     } catch (err) {
-      console.error("Failed to mark notification as read", err);
+      console.warn("Failed to mark notification as read", err);
     }
   };
 

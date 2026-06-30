@@ -190,9 +190,23 @@ export function Analytics() {
           <div className="pt-6 border-t border-slate-800 relative z-10">
             <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-4">Semantic Clusters Identified</h4>
             <div className="flex flex-wrap gap-2">
-              <span className="px-3 py-1.5 bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-medium rounded-lg">Pacing too fast (420)</span>
-              <span className="px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs font-medium rounded-lg">Excellent lab support (850)</span>
-              <span className="px-3 py-1.5 bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-medium rounded-lg">Clear grading rubrics (612)</span>
+              {(analyticsData.semanticClusters || []).map((cluster: any, idx: number) => {
+                const colors = [
+                  "bg-indigo-500/10 border-indigo-500/20 text-indigo-300",
+                  "bg-emerald-500/10 border-emerald-500/20 text-emerald-300",
+                  "bg-rose-500/10 border-rose-500/20 text-rose-300",
+                  "bg-amber-500/10 border-amber-500/20 text-amber-300",
+                  "bg-cyan-500/10 border-cyan-500/20 text-cyan-300"
+                ];
+                return (
+                  <span key={idx} className={`px-3 py-1.5 border text-xs font-medium rounded-lg ${colors[idx % colors.length]}`}>
+                    {cluster.name} ({cluster.count})
+                  </span>
+                );
+              })}
+              {!(analyticsData.semanticClusters?.length) && (
+                <span className="text-xs text-slate-500 italic">No semantic clusters identified yet.</span>
+              )}
             </div>
           </div>
         </motion.div>

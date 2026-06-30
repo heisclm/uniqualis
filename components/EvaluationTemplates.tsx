@@ -84,14 +84,14 @@ export function EvaluationTemplates() {
     }));
   };
 
-  const updateCriterion = (id: string, updates: Partial<Criterion>) => {
+  const updateCriterion = (id: string | undefined, updates: Partial<Criterion>) => {
     setBuilderState(prev => ({
       ...prev,
       criteria: prev.criteria.map(c => c.id === id ? { ...c, ...updates } : c)
     }));
   };
 
-  const removeCriterion = (id: string) => {
+  const removeCriterion = (id: string | undefined) => {
     setBuilderState(prev => ({
       ...prev,
       criteria: prev.criteria.filter(c => c.id !== id)

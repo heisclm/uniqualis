@@ -6,7 +6,7 @@ export async function GET(req: NextRequest) {
     const userId = req.headers.get("x-user-id");
     const role = req.headers.get("x-user-role");
 
-    if (!userId || role !== "OFFICIAL") {
+    if (!userId || (role !== "OFFICIAL" && role !== "ADMIN")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -20,15 +20,15 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    // Logic: fetch templates that are institution-wide (null department) 
-    // OR belong to the official's specific department
+    const whereClause = role === "ADMIN" ? {} : {
+      OR: [
+        { departmentId: null },
+        ...(user.officialDepartmentId ? [{ departmentId: user.officialDepartmentId }] : [])
+      ]
+    };
+
     const templates = await prisma.evaluationTemplate.findMany({
-      where: {
-        OR: [
-          { departmentId: null },
-          ...(user.officialDepartmentId ? [{ departmentId: user.officialDepartmentId }] : [])
-        ]
-      },
+      where: whereClause,
       include: {
         criteria: true,
       },
@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
     const userId = req.headers.get("x-user-id");
     const role = req.headers.get("x-user-role");
 
-    if (!userId || role !== "OFFICIAL") {
+    if (!userId || (role !== "OFFICIAL" && role !== "ADMIN")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
