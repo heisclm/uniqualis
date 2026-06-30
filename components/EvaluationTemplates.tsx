@@ -151,7 +151,7 @@ export function EvaluationTemplates() {
         {activeTab === "list" ? (
           <button 
             onClick={() => {
-              setBuilderState({ id: "", name: "", department: "All Departments", status: "draft", criteria: [] });
+              setBuilderState({ id: "", name: "", departmentId: "ALL", status: "DRAFT", criteria: [] });
               setActiveTab("builder");
             }}
             className="h-10 px-4 rounded-xl bg-blue-600 flex items-center justify-center gap-2 text-white shadow-md hover:bg-blue-700 transition-all font-medium text-sm"
