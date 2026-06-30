@@ -72,3 +72,64 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Internal server error during provisioning" }, { status: 500 });
   }
 }
+
+export async function GET(req: NextRequest) {
+  try {
+    const token = req.cookies.get("uniqualis_session")?.value;
+    
+    if (!token) {
+      return NextResponse.json({ error: "Unauthorized access" }, { status: 401 });
+    }
+
+    const payload = await verifyToken(token);
+    if (!payload || payload.role !== "ADMIN") {
+      return NextResponse.json({ error: "Forbidden: Administrator privileges required" }, { status: 403 });
+    }
+
+    const provisionedAccounts = await prisma.provisionedAccount.findMany({
+      orderBy: { createdAt: 'desc' },
+      include: {
+        department: true,
+        faculty: true
+      }
+    });
+
+    return NextResponse.json({ provisionedAccounts });
+
+  } catch (error) {
+    console.error("Admin Provisioning GET Error:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
+}
+
+export async function DELETE(req: NextRequest) {
+  try {
+    const token = req.cookies.get("uniqualis_session")?.value;
+    
+    if (!token) {
+      return NextResponse.json({ error: "Unauthorized access" }, { status: 401 });
+    }
+
+    const payload = await verifyToken(token);
+    if (!payload || payload.role !== "ADMIN") {
+      return NextResponse.json({ error: "Forbidden: Administrator privileges required" }, { status: 403 });
+    }
+
+    const url = new URL(req.url);
+    const id = url.searchParams.get("id");
+
+    if (!id) {
+      return NextResponse.json({ error: "Missing ID" }, { status: 400 });
+    }
+
+    await prisma.provisionedAccount.delete({
+      where: { id }
+    });
+
+    return NextResponse.json({ success: true });
+
+  } catch (error) {
+    console.error("Admin Provisioning DELETE Error:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
+}

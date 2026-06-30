@@ -1,19 +1,24 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { FileText, CheckCircle, AlertTriangle, LayoutTemplate, Loader2, ArrowRight, Bell, Zap, Clock, ShieldCheck } from "lucide-react";
+import { FileText, CheckCircle, AlertTriangle, LayoutTemplate, Loader2, ArrowRight, Bell, Zap, Clock, ShieldCheck, Download } from "lucide-react";
 import { motion } from "motion/react";
+import toast from "react-hot-toast";
 
 interface MetricsData {
   totalEvaluations: number;
   totalDepartments: number;
   flaggedReports: number;
+  alerts?: { title: string, time: string, type: 'critical' | 'warning' | 'info' }[];
 }
 
-export function AdminDashboard() {
+export function AdminDashboard({ onNavigate }: { onNavigate?: (view: string) => void }) {
   const [data, setData] = useState<MetricsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isTogglingEvaluation, setIsTogglingEvaluation] = useState(false);
+  const [isSendingReminders, setIsSendingReminders] = useState(false);
+  const [isExtractingSummary, setIsExtractingSummary] = useState(false);
 
   useEffect(() => {
     const fetchMetrics = async () => {
@@ -30,6 +35,71 @@ export function AdminDashboard() {
     };
     fetchMetrics();
   }, []);
+
+  const handleToggleEvaluation = async () => {
+    setIsTogglingEvaluation(true);
+    const toastId = toast.loading("Updating evaluation status...");
+    try {
+      const res = await fetch('/api/admin/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'toggle_evaluation' })
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to update");
+      }
+      toast.success("Evaluation window status updated.", { id: toastId });
+    } catch (err: any) {
+      toast.error(err.message, { id: toastId });
+    } finally {
+      setIsTogglingEvaluation(false);
+    }
+  };
+
+  const handleSendReminders = async () => {
+    setIsSendingReminders(true);
+    const toastId = toast.loading("Dispatching reminders...");
+    try {
+      const res = await fetch('/api/admin/notifications/reminders', { method: 'POST' });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to send reminders");
+      }
+      toast.success("Reminders dispatched successfully.", { id: toastId });
+    } catch (err: any) {
+      toast.error(err.message, { id: toastId });
+    } finally {
+      setIsSendingReminders(false);
+    }
+  };
+
+  const handleExtractSummary = async () => {
+    setIsExtractingSummary(true);
+    const toastId = toast.loading("Generating executive summary...");
+    try {
+      const res = await fetch('/api/admin/reports/executive-summary');
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to extract summary");
+      }
+      
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `executive-summary-${new Date().toISOString().split('T')[0]}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      
+      toast.success("Executive summary generated.", { id: toastId });
+    } catch (err: any) {
+      toast.error(err.message, { id: toastId });
+    } finally {
+      setIsExtractingSummary(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -90,7 +160,7 @@ export function AdminDashboard() {
 
       {/* Top 3 Stat Cards */}
       <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-        <div className="bg-white rounded-3xl p-6 shadow-[0_4px_24px_rgba(0,0,0,0.02)] border border-slate-200/60 flex flex-col justify-between aspect-[4/3] group hover:border-blue-200 transition-colors">
+        <div className="bg-white rounded-3xl p-6 shadow-[0_4px_24px_rgba(0,0,0,0.02)] border border-slate-200/60 flex flex-col justify-between aspect-auto sm:aspect-[4/3] group hover:border-blue-200 transition-colors">
             <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600 mb-4 group-hover:bg-blue-600 group-hover:text-white transition-colors">
               <CheckCircle className="w-6 h-6" />
             </div>
@@ -99,7 +169,7 @@ export function AdminDashboard() {
               <h2 className="text-4xl font-bold text-slate-900 tracking-tight">{totalEvaluations.toLocaleString()}</h2>
             </div>
         </div>
-        <div className="bg-white rounded-3xl p-6 shadow-[0_4px_24px_rgba(0,0,0,0.02)] border border-slate-200/60 flex flex-col justify-between aspect-[4/3] group hover:border-emerald-200 transition-colors">
+        <div className="bg-white rounded-3xl p-6 shadow-[0_4px_24px_rgba(0,0,0,0.02)] border border-slate-200/60 flex flex-col justify-between aspect-auto sm:aspect-[4/3] group hover:border-emerald-200 transition-colors">
             <div className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600 mb-4 group-hover:bg-emerald-500 group-hover:text-white transition-colors">
               <LayoutTemplate className="w-6 h-6" />
             </div>
@@ -108,7 +178,7 @@ export function AdminDashboard() {
               <h2 className="text-4xl font-bold text-slate-900 tracking-tight">{totalDepartments.toLocaleString()}</h2>
             </div>
         </div>
-        <div className="bg-white rounded-3xl p-6 shadow-[0_4px_24px_rgba(0,0,0,0.02)] border border-slate-200/60 flex flex-col justify-between aspect-[4/3] group hover:border-amber-200 transition-colors">
+        <div className="bg-white rounded-3xl p-6 shadow-[0_4px_24px_rgba(0,0,0,0.02)] border border-slate-200/60 flex flex-col justify-between aspect-auto sm:aspect-[4/3] group hover:border-amber-200 transition-colors">
             <div className="w-12 h-12 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-600 mb-4 group-hover:bg-amber-500 group-hover:text-white transition-colors">
               <AlertTriangle className="w-6 h-6" />
             </div>
@@ -122,9 +192,9 @@ export function AdminDashboard() {
         </div>
       </motion.div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="flex flex-col lg:flex-row gap-6">
         {/* Critical Alerts Feed */}
-        <motion.div variants={itemVariants} className="bg-white rounded-3xl p-6 md:p-8 shadow-[0_4px_24px_rgba(0,0,0,0.02)] border border-slate-200/60 flex flex-col h-[500px]">
+        <motion.div variants={itemVariants} className="bg-white rounded-3xl p-6 md:p-8 shadow-[0_4px_24px_rgba(0,0,0,0.02)] border border-slate-200/60 flex flex-col h-[500px] w-full lg:w-1/2">
           <div className="flex justify-between items-center mb-6">
             <div>
               <h3 className="text-lg font-semibold text-slate-900 tracking-tight flex items-center gap-2">
@@ -137,13 +207,9 @@ export function AdminDashboard() {
           </div>
           
           <div className="flex-1 overflow-y-auto pr-2 space-y-3 custom-scrollbar">
-            {[
-              { title: "Severe language violation in CS301 feedback", time: "10 mins ago", type: "critical" },
-              { title: "Evaluation participation dropped below 40% in Math Dept", time: "1 hour ago", type: "warning" },
-              { title: "5 lecturers missed response deadline", time: "2 hours ago", type: "warning" },
-              { title: "System error during bulk data sync", time: "4 hours ago", type: "critical" },
-              { title: "New high-praise review flagged for 'Best Practices' showcase", time: "5 hours ago", type: "info" }
-            ].map((alert, i) => (
+            {(data?.alerts && data.alerts.length > 0 ? data.alerts : [
+              { title: "System running smoothly", time: "Just now", type: "info" }
+            ]).map((alert: any, i: number) => (
               <div key={i} className="flex gap-4 p-4 rounded-2xl border border-slate-100 bg-slate-50/50 hover:bg-white hover:shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:border-slate-200 transition-all group cursor-pointer">
                 <div className={`mt-0.5 shrink-0 w-2 h-2 rounded-full ${alert.type === 'critical' ? 'bg-red-500' : alert.type === 'warning' ? 'bg-amber-500' : 'bg-blue-500'}`} />
                 <div className="flex-1">
@@ -160,7 +226,7 @@ export function AdminDashboard() {
         </motion.div>
 
         {/* Quick Actions Matrix */}
-        <motion.div variants={itemVariants} className="bg-slate-900 rounded-3xl p-6 md:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.12)] text-white relative overflow-hidden flex flex-col h-[500px]">
+        <motion.div variants={itemVariants} className="bg-slate-900 rounded-3xl p-6 md:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.12)] text-white relative overflow-hidden flex flex-col h-auto lg:h-[500px] w-full lg:w-1/2">
           <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-[80px]"></div>
           
           <div className="relative z-10 mb-8">
@@ -171,34 +237,49 @@ export function AdminDashboard() {
             <p className="text-sm text-slate-400 mt-1">Frequent administrative tasks.</p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 relative z-10">
-            <button className="flex flex-col items-start p-5 rounded-2xl bg-white/5 border border-white/10 hover:bg-blue-600/20 hover:border-blue-500/30 transition-all text-left group">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 relative z-10 h-full">
+            <button 
+              disabled={isTogglingEvaluation}
+              onClick={handleToggleEvaluation}
+              className="flex flex-col items-start p-5 rounded-2xl bg-white/5 border border-white/10 hover:bg-blue-600/20 hover:border-blue-500/30 transition-all text-left group disabled:opacity-50 disabled:cursor-not-allowed"
+            >
               <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-400 mb-4 group-hover:scale-110 transition-transform">
-                <LayoutTemplate className="w-5 h-5" />
+                {isTogglingEvaluation ? <Loader2 className="w-5 h-5 animate-spin" /> : <LayoutTemplate className="w-5 h-5" />}
               </div>
-              <h4 className="font-semibold text-white mb-1">Open Evaluation Window</h4>
-              <p className="text-xs text-slate-400 line-clamp-2">Start a new campus-wide evaluation period.</p>
+              <h4 className="font-semibold text-white mb-1">Open/Close Evaluation Window</h4>
+              <p className="text-xs text-slate-400 line-clamp-2">Toggle global evaluation period.</p>
             </button>
             
-            <button className="flex flex-col items-start p-5 rounded-2xl bg-white/5 border border-white/10 hover:bg-amber-500/20 hover:border-amber-500/30 transition-all text-left group">
+            <button 
+              disabled={isSendingReminders}
+              onClick={handleSendReminders}
+              className="flex flex-col items-start p-5 rounded-2xl bg-white/5 border border-white/10 hover:bg-amber-500/20 hover:border-amber-500/30 transition-all text-left group disabled:opacity-50 disabled:cursor-not-allowed"
+            >
               <div className="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center text-amber-400 mb-4 group-hover:scale-110 transition-transform">
-                <Bell className="w-5 h-5" />
+                {isSendingReminders ? <Loader2 className="w-5 h-5 animate-spin" /> : <Bell className="w-5 h-5" />}
               </div>
               <h4 className="font-semibold text-white mb-1">Send Reminders</h4>
               <p className="text-xs text-slate-400 line-clamp-2">Dispatch automated email reminders to pending students.</p>
             </button>
 
-            <button className="flex flex-col items-start p-5 rounded-2xl bg-white/5 border border-white/10 hover:bg-emerald-500/20 hover:border-emerald-500/30 transition-all text-left group">
+            <button 
+              onClick={() => onNavigate?.('reports')}
+              className="flex flex-col items-start p-5 rounded-2xl bg-white/5 border border-white/10 hover:bg-emerald-500/20 hover:border-emerald-500/30 transition-all text-left group"
+            >
               <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center text-emerald-400 mb-4 group-hover:scale-110 transition-transform">
                 <ShieldCheck className="w-5 h-5" />
               </div>
               <h4 className="font-semibold text-white mb-1">Review Flagged Feed</h4>
-              <p className="text-xs text-slate-400 line-clamp-2">Resolve 12 pending flagged submissions manually.</p>
+              <p className="text-xs text-slate-400 line-clamp-2">Resolve pending flagged submissions manually.</p>
             </button>
 
-            <button className="flex flex-col items-start p-5 rounded-2xl bg-white/5 border border-white/10 hover:bg-indigo-500/20 hover:border-indigo-500/30 transition-all text-left group">
+            <button 
+              disabled={isExtractingSummary}
+              onClick={handleExtractSummary}
+              className="flex flex-col items-start p-5 rounded-2xl bg-white/5 border border-white/10 hover:bg-indigo-500/20 hover:border-indigo-500/30 transition-all text-left group disabled:opacity-50 disabled:cursor-not-allowed"
+            >
               <div className="w-10 h-10 rounded-xl bg-indigo-500/20 flex items-center justify-center text-indigo-400 mb-4 group-hover:scale-110 transition-transform">
-                <FileText className="w-5 h-5" />
+                {isExtractingSummary ? <Loader2 className="w-5 h-5 animate-spin" /> : <Download className="w-5 h-5" />}
               </div>
               <h4 className="font-semibold text-white mb-1">Extract Executive Summary</h4>
               <p className="text-xs text-slate-400 line-clamp-2">Download a 1-page digest of current term metrics.</p>
@@ -210,5 +291,6 @@ export function AdminDashboard() {
     </motion.div>
   );
 }
+
 
 

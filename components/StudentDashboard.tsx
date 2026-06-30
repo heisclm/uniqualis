@@ -33,7 +33,24 @@ export function StudentDashboard() {
 
   const pendingEvaluations = courses.filter(c => c.status === 'PENDING').slice(0, 3); // Get up to 3 pending
 
-  const recentActivity = [
+  const [notifications, setNotifications] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const res = await fetch('/api/notifications');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.notifications) {
+             setNotifications(data.notifications.slice(0, 5));
+          }
+        }
+      } catch (err) {}
+    };
+    fetchNotifications();
+  }, []);
+
+  const recentActivity = notifications.length > 0 ? notifications : [
     { id: 1, type: "announcement", title: "Current Evaluation Window Open", date: "Recently", read: true },
     { id: 2, type: "system", title: "Please ensure you evaluate all your courses", date: "Recently", read: true },
   ];
@@ -143,10 +160,10 @@ export function StudentDashboard() {
                     <Bell className="w-4 h-4" />
                   </div>
                   <div>
-                    <p className={`text-sm ${!activity.read ? 'font-semibold text-slate-900' : 'font-medium text-slate-700'}`}>
+                    <p className={`text-sm ${!activity.isRead && !activity.read ? 'font-semibold text-slate-900' : 'font-medium text-slate-700'}`}>
                       {activity.title}
                     </p>
-                    <p className="text-xs text-slate-500 mt-1">{activity.date}</p>
+                    <p className="text-xs text-slate-500 mt-1">{activity.createdAt ? new Date(activity.createdAt).toLocaleDateString() : activity.date}</p>
                   </div>
                 </div>
               ))}

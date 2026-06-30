@@ -41,6 +41,7 @@ model Department {
   courses     Course[]
   lecturers   User[]       @relation("LecturerDepartment")
   officials   User[]       @relation("DepartmentOfficials")
+  evaluationTemplates EvaluationTemplate[]
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 
@@ -149,6 +150,9 @@ model Evaluation {
   studentId        String
   student          User           @relation("StudentEvaluations", fields: [studentId], references: [id])
   
+  templateId       String?
+  template         EvaluationTemplate? @relation(fields: [templateId], references: [id])
+
   academicDate     DateTime
   timeSlot         String
   
@@ -243,4 +247,30 @@ model StudentEnrollment {
   createdAt    DateTime @default(now())
 
   @@unique([studentId, courseId, academicYear, semester])
+}
+
+model EvaluationTemplate {
+  id           String      @id @default(uuid())
+  name         String
+  description  String?
+  status       String      @default("DRAFT") // DRAFT, PUBLISHED, ARCHIVED
+  departmentId String?     // null means institution-wide
+  department   Department? @relation(fields: [departmentId], references: [id])
+  criteria     Criterion[]
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  
+  evaluations  Evaluation[]
+}
+
+model Criterion {
+  id           String             @id @default(uuid())
+  templateId   String
+  template     EvaluationTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  question     String
+  type         String             // SCALE, QUALITATIVE
+  options      String?            // JSON string for options if any
+  order        Int                @default(0)
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
 }

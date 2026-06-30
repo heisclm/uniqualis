@@ -1,5 +1,6 @@
 import { Home, BookOpen, Bookmark, FileText, ClipboardList, Users, MessageSquare, PieChart, Settings, LogOut, ArrowRight, Activity, ShieldCheck, X, Network, UserPlus, FileBarChart, LayoutTemplate } from "lucide-react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 export function Sidebar({ 
   currentView, 
@@ -58,9 +59,7 @@ export function Sidebar({
       {/* Brand Header */}
       <div className="flex items-center justify-between px-8 mb-10">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white shrink-0 shadow-lg shadow-blue-500/30">
-            <ShieldCheck className="w-5 h-5" />
-          </div>
+          <Image src="/logo.png" alt="UniQualis Logo" width={32} height={32} className="shrink-0" />
           <span className="text-xl font-bold tracking-tight text-white">UniQualis</span>
         </div>
         <button onClick={() => setIsOpen(false)} className="lg:hidden text-slate-400 hover:text-white">

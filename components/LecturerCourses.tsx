@@ -1,33 +1,48 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Loader2, BookOpen, Users, Clock, ArrowRight, BarChart3, History, Layers } from "lucide-react";
+import { Loader2, BookOpen, Users, Clock, ArrowRight, BarChart3, History, Layers, AlertCircle } from "lucide-react";
 
 type TermFilter = 'current' | 'historical';
 
+interface CourseData {
+  id: string;
+  code: string;
+  title: string;
+  studentsEnrolled: number;
+  evaluationsSubmitted: number;
+  status: string;
+  nextEvaluationDate: string;
+  term: string;
+}
+
 export function LecturerCourses() {
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [activeTerm, setActiveTerm] = useState<TermFilter>('current');
+  const [courses, setCourses] = useState<CourseData[]>([]);
 
-  // Simulated fetching for the courses
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 600);
-    return () => clearTimeout(timer);
-  }, [activeTerm]);
+    const fetchCourses = async () => {
+      try {
+        setIsLoading(true);
+        const response = await fetch('/api/lecturer/courses');
+        if (!response.ok) throw new Error('Failed to fetch courses');
+        const data = await response.json();
+        setCourses(data.courses || []);
+      } catch (err) {
+        console.error("Error fetching courses:", err);
+        setError("Failed to load courses. Please try again later.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchCourses();
+  }, []);
 
-  const currentCourses = [
-    { id: 1, code: "CS101", title: "Introduction to Computer Science", students: 150, evaluated: 120, status: "Active Window", windowEnds: "2 days", term: "Fall 2026" },
-    { id: 2, title: "Data Structures & Algorithms", code: "CS201", students: 85, evaluated: 85, status: "Window Closed", windowEnds: "N/A", term: "Fall 2026" },
-    { id: 3, title: "Advanced Web Development", code: "CS305", students: 42, evaluated: 0, status: "Pending Window", windowEnds: "Opens in 14 days", term: "Fall 2026" },
-  ];
-
-  const historicalCourses = [
-    { id: 4, code: "CS101", title: "Introduction to Computer Science", students: 140, evaluated: 135, status: "Archived", windowEnds: "N/A", term: "Spring 2026" },
-    { id: 5, title: "Web Technologies", code: "CS205", students: 95, evaluated: 90, status: "Archived", windowEnds: "N/A", term: "Spring 2026" },
-    { id: 6, title: "Software Engineering", code: "CS301", students: 110, evaluated: 105, status: "Archived", windowEnds: "N/A", term: "Fall 2025" },
-  ];
+  const currentCourses = courses.filter(c => c.status === "ACTIVE" || c.status === "Active Window");
+  const historicalCourses = courses.filter(c => c.status !== "ACTIVE" && c.status !== "Active Window");
 
   const displayCourses = activeTerm === 'current' ? currentCourses : historicalCourses;
 
@@ -78,7 +93,7 @@ export function LecturerCourses() {
         <div className="space-y-10">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {displayCourses.map((course) => {
-              const completionRate = Math.round((course.evaluated / course.students) * 100) || 0;
+              const completionRate = Math.round((course.evaluationsSubmitted / course.studentsEnrolled) * 100) || 0;
               
               return (
                 <div key={course.id} className="bg-white rounded-3xl p-6 shadow-[0_4px_24px_rgba(0,0,0,0.02)] border border-slate-200/60 hover:shadow-[0_8px_30px_rgba(0,0,0,0.04)] transition-shadow group flex flex-col h-full relative overflow-hidden">
@@ -116,7 +131,7 @@ export function LecturerCourses() {
                         ></div>
                       </div>
                       <div className="text-xs text-slate-500 text-right">
-                        {course.evaluated} of {course.students} students submitted
+                        {course.evaluationsSubmitted} of {course.studentsEnrolled} students submitted
                       </div>
                     </div>
 
@@ -127,11 +142,11 @@ export function LecturerCourses() {
                         Window Status
                       </span>
                       <span className={`font-bold ${
-                        course.status === 'Active Window' ? 'text-emerald-600 flex items-center gap-1.5' : 
+                        course.status === 'ACTIVE' ? 'text-emerald-600 flex items-center gap-1.5' : 
                         course.status === 'Archived' ? 'text-slate-500' : 
                         'text-indigo-600'
                       }`}>
-                        {course.status === 'Active Window' && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>}
+                        {course.status === 'ACTIVE' && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>}
                         {course.status}
                       </span>
                     </div>

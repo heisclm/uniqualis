@@ -50,18 +50,38 @@ export async function GET(req: NextRequest) {
       }
     });
 
-    // Get recent notifications / activity (Mocked for now since notifications aren't fully wired)
-    const recentActivity = await prisma.notification.findMany({
-      where: { recipientId: lecturerId },
+    // Get recent evaluations for Actionable Feedback Feed
+    // Exclude studentId strictly for anonymity
+    const recentFeedback = await prisma.evaluation.findMany({
+      where: { 
+        courseLecturer: { lecturerId },
+        ratingQualitative: { not: null }
+      },
+      select: {
+        id: true,
+        sentimentScore: true,
+        themes: true,
+        ratingQualitative: true,
+        createdAt: true,
+        isFlagged: true,
+        course: { select: { title: true, code: true } }
+      },
       orderBy: { createdAt: 'desc' },
       take: 5
     });
+
+    // We can also fetch the current active term context globally or derive it
+    const activeTerm = {
+      academicYear: "2026-2027",
+      semester: "Fall"
+    };
 
     return NextResponse.json({
       averageRating,
       totalEvaluations,
       pendingResponses,
-      recentActivity
+      recentFeedback,
+      activeTerm
     });
   } catch (error) {
     console.error("Lecturer dashboard GET Error:", error);

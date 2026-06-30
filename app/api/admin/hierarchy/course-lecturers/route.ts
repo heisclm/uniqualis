@@ -26,3 +26,25 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Failed to assign lecturer to course" }, { status: 500 });
   }
 }
+
+export async function DELETE(req: NextRequest) {
+  try {
+    const sessionToken = req.cookies.get('uniqualis_session')?.value;
+    if (!sessionToken) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    
+    const payload = await verifyToken(sessionToken);
+    if (!payload || payload.role !== 'ADMIN') return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
+    const { courseId, lecturerId } = await req.json();
+    if (!courseId || !lecturerId) return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+
+    await prisma.courseLecturer.deleteMany({
+      where: { courseId, lecturerId }
+    });
+
+    return NextResponse.json({ success: true }, { status: 200 });
+  } catch (error: any) {
+    console.error(error);
+    return NextResponse.json({ error: "Failed to revoke assignment" }, { status: 500 });
+  }
+}

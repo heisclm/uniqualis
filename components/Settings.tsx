@@ -129,6 +129,8 @@ export function Settings({
       if (res.ok) {
         toast.success("Settings updated successfully");
         reset(data); // reset to make isDirty false again
+        // Force reload to update TopBar and Sidebar user info
+        setTimeout(() => window.location.reload(), 1000);
       } else {
         const errData = await res.json();
         toast.error(errData.error || "Failed to update settings");
@@ -237,15 +239,54 @@ export function Settings({
                 <div className="flex flex-col sm:flex-row gap-8 items-start">
                   <div className="shrink-0 flex flex-col items-center gap-3">
                     <div className="w-24 h-24 relative rounded-full bg-slate-100 flex items-center justify-center border-4 border-white shadow-md overflow-hidden">
-                      {user?.profileImageUrl ? (
-                        <Image src={user.profileImageUrl} alt="Profile" fill className="object-cover" referrerPolicy="no-referrer" />
+                      {dbUser?.profileImageUrl || user?.profileImageUrl ? (
+                        <Image src={dbUser?.profileImageUrl || user?.profileImageUrl} alt="Profile" fill className="object-cover" referrerPolicy="no-referrer" />
                       ) : (
                         <span className="text-2xl font-bold text-slate-400 uppercase">
-                          {watch("firstName")?.charAt(0) || "U"}{watch("lastName")?.charAt(0) || "S"}
+                          {user?.firstName?.charAt(0) || "U"}{user?.lastName?.charAt(0) || "S"}
                         </span>
                       )}
                     </div>
-                    <button className="text-xs font-medium text-blue-600 hover:text-blue-700 transition-colors">Change Avatar</button>
+                    <label className="text-xs font-medium text-blue-600 hover:text-blue-700 transition-colors cursor-pointer">
+                      Change Avatar
+                      <input 
+                        type="file" 
+                        accept="image/*" 
+                        className="hidden" 
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          
+                          if (file.size > 2 * 1024 * 1024) {
+                            toast.error("Image must be smaller than 2MB");
+                            return;
+                          }
+                          
+                          const reader = new FileReader();
+                          reader.onloadend = async () => {
+                            const base64String = reader.result as string;
+                            try {
+                              const res = await fetch('/api/settings', {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ profileImageUrl: base64String }),
+                              });
+                              if (res.ok) {
+                                toast.success("Avatar updated");
+                                setDbUser({ ...dbUser, profileImageUrl: base64String });
+                                // Force reload to update TopBar if needed
+                                window.location.reload();
+                              } else {
+                                toast.error("Failed to update avatar");
+                              }
+                            } catch (err) {
+                              toast.error("Error updating avatar");
+                            }
+                          };
+                          reader.readAsDataURL(file);
+                        }}
+                      />
+                    </label>
                   </div>
                   
                   <div className="flex-1 space-y-4 w-full">
@@ -325,7 +366,7 @@ export function Settings({
                       </div>
                       <div>
                         <span className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Department</span>
-                        <span className="text-sm font-medium text-slate-800">Computer Science</span>
+                        <span className="text-sm font-medium text-slate-800">{dbUser?.lecturerDepartment?.name || dbUser?.officialDepartment?.name || "N/A"}</span>
                       </div>
                     </div>
                     <p className="text-xs text-slate-400 mt-3 flex items-center gap-1.5">

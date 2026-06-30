@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { UserPlus, ShieldCheck, Mail, AlertTriangle, Loader2, CheckCircle } from "lucide-react";
+import { UserPlus, ShieldCheck, Mail, AlertTriangle, Loader2, CheckCircle, Trash2 } from "lucide-react";
 import { motion } from "motion/react";
+import toast from "react-hot-toast";
 
 export function UserProvisioning() {
   const [email, setEmail] = useState("");
@@ -12,9 +13,26 @@ export function UserProvisioning() {
   
   const [faculties, setFaculties] = useState<any[]>([]);
   const [departments, setDepartments] = useState<any[]>([]);
+  const [provisionedAccounts, setProvisionedAccounts] = useState<any[]>([]);
   
   const [isLoading, setIsLoading] = useState(false);
-  const [message, setMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null);
+  const [isFetchingAccounts, setIsFetchingAccounts] = useState(true);
+  const [revokingIds, setRevokingIds] = useState<Set<string>>(new Set());
+
+  const fetchProvisioned = async () => {
+    setIsFetchingAccounts(true);
+    try {
+      const res = await fetch('/api/admin/provision');
+      if (res.ok) {
+        const data = await res.json();
+        setProvisionedAccounts(data.provisionedAccounts || []);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsFetchingAccounts(false);
+    }
+  };
 
   useEffect(() => {
     // Fetch faculties and departments for dropdowns
@@ -39,12 +57,54 @@ export function UserProvisioning() {
     };
     
     fetchStructure();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchProvisioned();
   }, []);
+
+  const handleRevoke = async (id: string) => {
+    setRevokingIds(prev => new Set(prev).add(id));
+    try {
+      const res = await fetch(`/api/admin/provision?id=${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        toast.success("Authorization revoked successfully.");
+        setProvisionedAccounts(prev => prev.filter(acc => acc.id !== id));
+      } else {
+        const data = await res.json();
+        toast.error(data.error || "Failed to revoke authorization");
+      }
+    } catch (e: any) {
+      toast.error(e.message || "An error occurred");
+    } finally {
+      setRevokingIds(prev => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
+    }
+  };
+
+  const validateForm = () => {
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      toast.error("Please enter a valid email address.");
+      return false;
+    }
+    if (role === 'LECTURER' && !departmentId) {
+      toast.error("Please select a department for the lecturer.");
+      return false;
+    }
+    if (role === 'OFFICIAL' && !facultyId) {
+      toast.error("Please select a faculty for the official.");
+      return false;
+    }
+    return true;
+  };
 
   const handleProvision = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validateForm()) return;
+    
     setIsLoading(true);
-    setMessage(null);
+    const toastId = toast.loading("Provisioning account...");
     
     try {
       const payload: any = { email, role };
@@ -63,11 +123,11 @@ export function UserProvisioning() {
         throw new Error(data.error || "Failed to provision account");
       }
 
-      setMessage({ text: data.message || "Account provisioned successfully.", type: 'success' });
+      toast.success(data.message || "Account provisioned successfully.", { id: toastId });
       setEmail("");
-      // keep other settings for convenience if adding multiple
+      fetchProvisioned();
     } catch (err: any) {
-      setMessage({ text: err.message, type: 'error' });
+      toast.error(err.message, { id: toastId });
     } finally {
       setIsLoading(false);
     }
@@ -110,12 +170,6 @@ export function UserProvisioning() {
         </div>
 
         <form onSubmit={handleProvision} className="p-6 md:p-8 space-y-6">
-          {message && (
-            <div className={`p-4 rounded-xl flex items-center gap-3 text-sm font-medium border ${message.type === 'success' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-red-50 text-red-700 border-red-100'}`}>
-              {message.type === 'success' ? <CheckCircle className="w-5 h-5 shrink-0" /> : <AlertTriangle className="w-5 h-5 shrink-0" />}
-              {message.text}
-            </div>
-          )}
 
           <div className="space-y-2">
             <label className="text-xs font-semibold text-slate-900 uppercase tracking-wide ml-1">Email Address</label>
@@ -215,6 +269,73 @@ export function UserProvisioning() {
             </button>
           </div>
         </form>
+      </motion.div>
+
+      <motion.div variants={itemVariants} className="mt-8 bg-white rounded-3xl shadow-[0_4px_24px_rgba(0,0,0,0.02)] border border-slate-200/60 overflow-hidden">
+        <div className="p-6 md:p-8 border-b border-slate-100">
+          <h2 className="text-lg font-semibold text-slate-900 tracking-tight">Pending Authorizations</h2>
+          <p className="text-sm text-slate-500 mt-1">Accounts provisioned but not yet claimed via registration.</p>
+        </div>
+        <div className="p-6 md:p-8">
+          {isFetchingAccounts ? (
+            <div className="flex justify-center p-8">
+              <Loader2 className="w-6 h-6 text-indigo-500 animate-spin" />
+            </div>
+          ) : provisionedAccounts.length === 0 ? (
+            <div className="text-center p-8 text-slate-500 text-sm">
+              No pending authorizations.
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm whitespace-nowrap">
+                <thead className="text-[10px] uppercase font-bold tracking-widest text-slate-400 bg-slate-50/50">
+                  <tr>
+                    <th className="px-4 py-3 rounded-l-lg font-semibold">Email</th>
+                    <th className="px-4 py-3 font-semibold">Role</th>
+                    <th className="px-4 py-3 font-semibold">Assignment</th>
+                    <th className="px-4 py-3 font-semibold">Date</th>
+                    <th className="px-4 py-3 rounded-r-lg font-semibold text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100/80">
+                  {provisionedAccounts.map((account) => (
+                    <tr key={account.id} className="hover:bg-slate-50/50 transition-colors">
+                      <td className="px-4 py-3 font-medium text-slate-900">{account.email}</td>
+                      <td className="px-4 py-3">
+                        <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider ${
+                          account.role === 'ADMIN' ? 'bg-purple-100 text-purple-700' :
+                          account.role === 'OFFICIAL' ? 'bg-amber-100 text-amber-700' :
+                          'bg-blue-100 text-blue-700'
+                        }`}>
+                          {account.role}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-slate-500 text-xs">
+                        {account.department?.name || account.faculty?.name || '-'}
+                      </td>
+                      <td className="px-4 py-3 text-slate-500 text-xs">
+                        {new Date(account.createdAt).toLocaleDateString()}
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <button
+                          disabled={revokingIds.has(account.id)}
+                          onClick={() => handleRevoke(account.id)}
+                          className="inline-flex items-center gap-1.5 text-xs font-semibold text-red-500 hover:text-red-700 transition-colors bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {revokingIds.has(account.id) ? (
+                            <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Revoking...</>
+                          ) : (
+                            <><Trash2 className="w-3.5 h-3.5" /> Revoke</>
+                          )}
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </motion.div>
     </motion.div>
   );

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { ShieldCheck, UserPlus, LogIn, ArrowRight, UserCircle, Briefcase } from "lucide-react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 type AuthMode = "LOGIN" | "STUDENT_SIGNUP" | "STAFF_SIGNUP";
 
@@ -112,9 +113,7 @@ export default function LoginPage() {
           <div className="absolute bottom-0 left-0 -ml-12 -mb-12 w-64 h-64 bg-indigo-800/30 rounded-full blur-3xl"></div>
           
           <div className="relative z-10 flex items-center gap-3 mb-12">
-            <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur-sm">
-              <ShieldCheck className="w-6 h-6 text-white" />
-            </div>
+            <Image src="/logo.png" alt="UniQualis Logo" width={40} height={40} className="shrink-0" />
             <span className="text-2xl font-bold tracking-tight">UniQualis</span>
           </div>
 
@@ -142,9 +141,7 @@ export default function LoginPage() {
         <div className="w-full md:w-7/12 p-6 sm:p-8 md:p-12 bg-white flex flex-col justify-center min-h-[100dvh] md:min-h-0 md:max-h-[90vh] overflow-y-auto">
           {/* Mobile Logo */}
           <div className="flex md:hidden items-center gap-3 mb-8">
-            <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center shadow-md">
-              <ShieldCheck className="w-6 h-6 text-white" />
-            </div>
+            <Image src="/logo.png" alt="UniQualis Logo" width={40} height={40} className="shrink-0" />
             <span className="text-2xl font-bold tracking-tight text-slate-900">UniQualis</span>
           </div>
 

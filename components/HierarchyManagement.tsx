@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Loader2, Plus, Building2, Map, BookOpen, Users, Network, Trash2 } from "lucide-react";
+import toast from "react-hot-toast";
 
 export function HierarchyManagement() {
   const [activeTab, setActiveTab] = useState<'faculties' | 'departments' | 'courses' | 'lecturers'>('faculties');
@@ -20,9 +21,177 @@ export function HierarchyManagement() {
   const [newCourseCode, setNewCourseCode] = useState("");
   const [newCourseTitle, setNewCourseTitle] = useState("");
   const [newCourseDeptId, setNewCourseDeptId] = useState("");
-  
   const [assignLecturerId, setAssignLecturerId] = useState("");
   const [assignCourseId, setAssignCourseId] = useState("");
+  
+  // State for Inline Edit
+  const [editingFacultyId, setEditingFacultyId] = useState<string | null>(null);
+  const [editFacultyName, setEditFacultyName] = useState("");
+
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+
+  const handleUpdateFaculty = async (id: string) => {
+    const toastId = toast.loading("Updating faculty...");
+    try {
+      const res = await fetch(`/api/admin/hierarchy/faculties/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: editFacultyName })
+      });
+      if (res.ok) {
+        setEditingFacultyId(null);
+        toast.success("Faculty updated.", { id: toastId });
+        fetchData();
+      } else {
+        const data = await res.json();
+        toast.error(data.error || "Failed to update", { id: toastId });
+      }
+    } catch (e: any) {
+      toast.error(e.message || "An error occurred", { id: toastId });
+    }
+  };
+
+  const handleDeleteFaculty = async (id: string) => {
+    if (confirmDeleteId !== id) {
+      setConfirmDeleteId(id);
+      setTimeout(() => setConfirmDeleteId(null), 3000);
+      return;
+    }
+    const toastId = toast.loading("Deleting faculty...");
+    try {
+      const res = await fetch(`/api/admin/hierarchy/faculties/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        toast.success("Faculty deleted.", { id: toastId });
+        setFaculties(f => f.filter(x => x.id !== id));
+        fetchData();
+      } else {
+        const data = await res.json();
+        toast.error(data.error || "Cannot delete faculty", { id: toastId, duration: 4000 });
+      }
+    } catch (e: any) {
+      toast.error(e.message || "An error occurred", { id: toastId });
+    }
+  };
+
+  const [editingDeptId, setEditingDeptId] = useState<string | null>(null);
+  const [editDeptName, setEditDeptName] = useState("");
+  const [editDeptFacultyId, setEditDeptFacultyId] = useState("");
+
+  const [editingCourseId, setEditingCourseId] = useState<string | null>(null);
+  const [editCourseCode, setEditCourseCode] = useState("");
+  const [editCourseTitle, setEditCourseTitle] = useState("");
+  const [editCourseDeptId, setEditCourseDeptId] = useState("");
+
+  const handleUpdateDepartment = async (id: string) => {
+    const toastId = toast.loading("Updating department...");
+    try {
+      const res = await fetch(`/api/admin/hierarchy/departments/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: editDeptName, facultyId: editDeptFacultyId })
+      });
+      if (res.ok) {
+        setEditingDeptId(null);
+        toast.success("Department updated.", { id: toastId });
+        fetchData();
+      } else {
+        const data = await res.json();
+        toast.error(data.error || "Failed to update", { id: toastId });
+      }
+    } catch (e: any) {
+      toast.error(e.message || "An error occurred", { id: toastId });
+    }
+  };
+
+  const handleDeleteDepartment = async (id: string) => {
+    if (confirmDeleteId !== id) {
+      setConfirmDeleteId(id);
+      setTimeout(() => setConfirmDeleteId(null), 3000);
+      return;
+    }
+    const toastId = toast.loading("Deleting department...");
+    try {
+      const res = await fetch(`/api/admin/hierarchy/departments/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        toast.success("Department deleted.", { id: toastId });
+        setDepartments(d => d.filter(x => x.id !== id));
+        fetchData();
+      } else {
+        const data = await res.json();
+        toast.error(data.error || "Cannot delete department", { id: toastId, duration: 4000 });
+      }
+    } catch (e: any) {
+      toast.error(e.message || "An error occurred", { id: toastId });
+    }
+  };
+
+  const handleUpdateCourse = async (id: string) => {
+    const toastId = toast.loading("Updating course...");
+    try {
+      const res = await fetch(`/api/admin/hierarchy/courses/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: editCourseCode, title: editCourseTitle, departmentId: editCourseDeptId })
+      });
+      if (res.ok) {
+        setEditingCourseId(null);
+        toast.success("Course updated.", { id: toastId });
+        fetchData();
+      } else {
+        const data = await res.json();
+        toast.error(data.error || "Failed to update", { id: toastId });
+      }
+    } catch (e: any) {
+      toast.error(e.message || "An error occurred", { id: toastId });
+    }
+  };
+
+  const handleDeleteCourse = async (id: string) => {
+    if (confirmDeleteId !== id) {
+      setConfirmDeleteId(id);
+      setTimeout(() => setConfirmDeleteId(null), 3000);
+      return;
+    }
+    const toastId = toast.loading("Deleting course...");
+    try {
+      const res = await fetch(`/api/admin/hierarchy/courses/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        toast.success("Course deleted.", { id: toastId });
+        setCourses(c => c.filter(x => x.id !== id));
+        fetchData();
+      } else {
+        const data = await res.json();
+        toast.error(data.error || "Cannot delete course", { id: toastId, duration: 4000 });
+      }
+    } catch (e: any) {
+      toast.error(e.message || "An error occurred", { id: toastId });
+    }
+  };
+
+  const handleRevokeAssignment = async (courseId: string, lecturerId: string) => {
+    if (confirmDeleteId !== `${courseId}-${lecturerId}`) {
+      setConfirmDeleteId(`${courseId}-${lecturerId}`);
+      setTimeout(() => setConfirmDeleteId(null), 3000);
+      return;
+    }
+    const toastId = toast.loading("Revoking assignment...");
+    try {
+      const res = await fetch('/api/admin/hierarchy/course-lecturers', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ courseId, lecturerId })
+      });
+      if (res.ok) {
+        toast.success("Assignment revoked.", { id: toastId });
+        fetchData();
+      } else {
+        const data = await res.json();
+        toast.error(data.error || "Failed to revoke", { id: toastId });
+      }
+    } catch (e: any) {
+      toast.error(e.message || "An error occurred", { id: toastId });
+    }
+  };
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -51,7 +220,6 @@ export function HierarchyManagement() {
   };
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchData();
   }, []);
 
@@ -360,12 +528,37 @@ export function HierarchyManagement() {
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {faculties.map(f => (
-                      <div key={f.id} className="p-5 border border-slate-200/60 rounded-2xl flex items-center justify-between hover:shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:border-slate-300 transition-all bg-slate-50/30">
-                        <div>
-                          <p className="font-semibold text-slate-900">{f.name}</p>
-                          <p className="text-xs text-slate-500 mt-1">{f._count?.departments || 0} Departments</p>
+                      <div key={f.id} className="p-5 border border-slate-200/60 rounded-2xl flex flex-col justify-center hover:shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:border-slate-300 transition-all bg-slate-50/30 group relative">
+                        <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
+                          <button onClick={() => { setEditingFacultyId(f.id); setEditFacultyName(f.name); }} className="p-1.5 text-slate-400 hover:text-blue-600 bg-white rounded-md shadow-sm border border-slate-200">
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                          </button>
+                          <button onClick={() => handleDeleteFaculty(f.id)} className={`p-1.5 bg-white rounded-md shadow-sm border ${confirmDeleteId === f.id ? 'text-red-600 bg-red-50 border-red-200' : 'text-slate-400 hover:text-red-600 border-slate-200'}`}>
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
                         </div>
-                        <Building2 className="w-5 h-5 text-slate-400" />
+
+                        {editingFacultyId === f.id ? (
+                          <div className="flex items-center gap-2 pr-16">
+                            <input 
+                              type="text" 
+                              value={editFacultyName} 
+                              onChange={(e) => setEditFacultyName(e.target.value)} 
+                              className="w-full text-sm font-semibold border-b border-blue-400 focus:outline-none bg-transparent" 
+                              autoFocus 
+                            />
+                            <button onClick={() => handleUpdateFaculty(f.id)} className="text-xs bg-blue-600 text-white px-2 py-1 rounded">Save</button>
+                            <button onClick={() => setEditingFacultyId(null)} className="text-xs bg-slate-200 text-slate-700 px-2 py-1 rounded">Cancel</button>
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-between pr-16">
+                            <div>
+                              <p className="font-semibold text-slate-900">{f.name}</p>
+                              <p className="text-xs text-slate-500 mt-1">{f._count?.departments || 0} Departments</p>
+                            </div>
+                            <Building2 className="w-5 h-5 text-slate-400 shrink-0" />
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -381,15 +574,52 @@ export function HierarchyManagement() {
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {departments.map(d => (
-                      <div key={d.id} className="p-5 border border-slate-200/60 rounded-2xl flex flex-col gap-3 hover:shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:border-slate-300 transition-all bg-slate-50/30">
-                        <div>
-                          <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest mb-1.5">{d.faculty?.name}</p>
-                          <p className="font-semibold text-slate-900 text-base">{d.name}</p>
+                      <div key={d.id} className="p-5 border border-slate-200/60 rounded-2xl flex flex-col gap-3 hover:shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:border-slate-300 transition-all bg-slate-50/30 group relative">
+                        <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
+                          <button onClick={() => { setEditingDeptId(d.id); setEditDeptName(d.name); setEditDeptFacultyId(d.faculty?.id || ""); }} className="p-1.5 text-slate-400 hover:text-blue-600 bg-white rounded-md shadow-sm border border-slate-200">
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                          </button>
+                          <button onClick={() => handleDeleteDepartment(d.id)} className={`p-1.5 bg-white rounded-md shadow-sm border ${confirmDeleteId === d.id ? 'text-red-600 bg-red-50 border-red-200' : 'text-slate-400 hover:text-red-600 border-slate-200'}`}>
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
                         </div>
-                        <div className="flex items-center gap-4 text-[11px] font-semibold text-slate-500 uppercase tracking-wide">
-                          <span className="flex items-center gap-1.5"><BookOpen className="w-3.5 h-3.5 text-slate-400" /> {d._count?.courses || 0} Courses</span>
-                          <span className="flex items-center gap-1.5"><Users className="w-3.5 h-3.5 text-slate-400" /> {d._count?.lecturers || 0} Lecturers</span>
-                        </div>
+                        
+                        {editingDeptId === d.id ? (
+                          <div className="flex flex-col gap-2 pr-16">
+                            <input 
+                              type="text" 
+                              value={editDeptName} 
+                              onChange={(e) => setEditDeptName(e.target.value)} 
+                              className="w-full text-sm font-semibold border-b border-blue-400 focus:outline-none bg-transparent" 
+                              autoFocus 
+                            />
+                            <select 
+                              value={editDeptFacultyId} 
+                              onChange={(e) => setEditDeptFacultyId(e.target.value)}
+                              className="text-xs border border-slate-200 rounded p-1"
+                            >
+                              <option value="" disabled>Select Faculty</option>
+                              {faculties.map(f => (
+                                <option key={f.id} value={f.id}>{f.name}</option>
+                              ))}
+                            </select>
+                            <div className="flex gap-2 mt-1">
+                              <button onClick={() => handleUpdateDepartment(d.id)} className="text-xs bg-blue-600 text-white px-2 py-1 rounded">Save</button>
+                              <button onClick={() => setEditingDeptId(null)} className="text-xs bg-slate-200 text-slate-700 px-2 py-1 rounded">Cancel</button>
+                            </div>
+                          </div>
+                        ) : (
+                          <>
+                            <div className="pr-16">
+                              <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest mb-1.5">{d.faculty?.name}</p>
+                              <p className="font-semibold text-slate-900 text-base">{d.name}</p>
+                            </div>
+                            <div className="flex items-center gap-4 text-[11px] font-semibold text-slate-500 uppercase tracking-wide mt-auto">
+                              <span className="flex items-center gap-1.5"><BookOpen className="w-3.5 h-3.5 text-slate-400" /> {d._count?.courses || 0} Courses</span>
+                              <span className="flex items-center gap-1.5"><Users className="w-3.5 h-3.5 text-slate-400" /> {d._count?.lecturers || 0} Lecturers</span>
+                            </div>
+                          </>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -405,21 +635,63 @@ export function HierarchyManagement() {
                 ) : (
                   <div className="space-y-3">
                     {courses.map(c => (
-                      <div key={c.id} className="p-4 border border-slate-200/60 rounded-2xl flex items-center justify-between hover:shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:border-slate-300 transition-all bg-slate-50/30">
-                        <div className="flex items-center gap-4">
-                          <div className="w-14 h-14 rounded-xl bg-white border border-slate-200 shadow-sm flex items-center justify-center text-slate-700 font-bold shrink-0 text-sm font-mono tracking-tight">
-                            {c.code}
-                          </div>
-                          <div>
-                            <p className="font-semibold text-slate-900">{c.title}</p>
-                            <p className="text-[11px] text-slate-500 mt-1 uppercase tracking-wide font-medium">{c.department?.name}</p>
-                          </div>
+                      <div key={c.id} className="p-4 border border-slate-200/60 rounded-2xl flex flex-col md:flex-row md:items-center justify-between hover:shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:border-slate-300 transition-all bg-slate-50/30 group relative gap-4">
+                        <div className="absolute top-4 right-4 md:relative md:top-0 md:right-0 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2 shrink-0 md:order-last">
+                          <button onClick={() => { setEditingCourseId(c.id); setEditCourseCode(c.code); setEditCourseTitle(c.title); setEditCourseDeptId(c.department?.id || ""); }} className="p-1.5 text-slate-400 hover:text-blue-600 bg-white rounded-md shadow-sm border border-slate-200">
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                          </button>
+                          <button onClick={() => handleDeleteCourse(c.id)} className={`p-1.5 bg-white rounded-md shadow-sm border ${confirmDeleteId === c.id ? 'text-red-600 bg-red-50 border-red-200' : 'text-slate-400 hover:text-red-600 border-slate-200'}`}>
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
                         </div>
-                        <div className="text-right">
-                          <span className="text-[11px] font-bold text-slate-600 bg-white border border-slate-200 px-3 py-1.5 rounded-lg shadow-sm">
-                            {c._count?.lecturers || 0} Assigned Lecturers
-                          </span>
-                        </div>
+
+                        {editingCourseId === c.id ? (
+                          <div className="flex flex-col md:flex-row gap-3 w-full pr-12 md:pr-0">
+                            <input 
+                              type="text" 
+                              value={editCourseCode} 
+                              onChange={(e) => setEditCourseCode(e.target.value)} 
+                              className="w-24 text-sm font-semibold border border-slate-200 rounded px-2 py-1 focus:outline-none font-mono" 
+                            />
+                            <input 
+                              type="text" 
+                              value={editCourseTitle} 
+                              onChange={(e) => setEditCourseTitle(e.target.value)} 
+                              className="flex-1 text-sm font-semibold border border-slate-200 rounded px-2 py-1 focus:outline-none" 
+                            />
+                            <select 
+                              value={editCourseDeptId} 
+                              onChange={(e) => setEditCourseDeptId(e.target.value)}
+                              className="text-xs border border-slate-200 rounded px-2 py-1"
+                            >
+                              <option value="" disabled>Select Department</option>
+                              {departments.map(d => (
+                                <option key={d.id} value={d.id}>{d.name}</option>
+                              ))}
+                            </select>
+                            <div className="flex gap-2">
+                              <button onClick={() => handleUpdateCourse(c.id)} className="text-xs bg-blue-600 text-white px-3 py-1.5 rounded">Save</button>
+                              <button onClick={() => setEditingCourseId(null)} className="text-xs bg-slate-200 text-slate-700 px-3 py-1.5 rounded">Cancel</button>
+                            </div>
+                          </div>
+                        ) : (
+                          <>
+                            <div className="flex items-center gap-4">
+                              <div className="w-14 h-14 rounded-xl bg-white border border-slate-200 shadow-sm flex items-center justify-center text-slate-700 font-bold shrink-0 text-sm font-mono tracking-tight">
+                                {c.code}
+                              </div>
+                              <div>
+                                <p className="font-semibold text-slate-900">{c.title}</p>
+                                <p className="text-[11px] text-slate-500 mt-1 uppercase tracking-wide font-medium">{c.department?.name}</p>
+                              </div>
+                            </div>
+                            <div className="text-left md:text-right md:mr-4">
+                              <span className="text-[11px] font-bold text-slate-600 bg-white border border-slate-200 px-3 py-1.5 rounded-lg shadow-sm">
+                                {c._count?.lecturers || 0} Assigned Lecturers
+                              </span>
+                            </div>
+                          </>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -451,10 +723,19 @@ export function HierarchyManagement() {
                           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Assigned Courses</p>
                           <div className="flex flex-wrap gap-2">
                             {l.coursesTaught?.length > 0 ? l.coursesTaught.map((assignment: any) => (
-                              <span key={assignment.id} className="px-3 py-1.5 bg-white text-slate-700 text-[11px] font-bold rounded-lg border border-slate-200 shadow-sm flex items-center gap-1.5">
-                                <BookOpen className="w-3.5 h-3.5 text-blue-500" />
-                                {assignment.course?.code} - {assignment.course?.title}
-                              </span>
+                              <div key={assignment.id} className="group relative">
+                                <span className="px-3 py-1.5 bg-white text-slate-700 text-[11px] font-bold rounded-lg border border-slate-200 shadow-sm flex items-center gap-1.5">
+                                  <BookOpen className="w-3.5 h-3.5 text-blue-500" />
+                                  {assignment.course?.code} - {assignment.course?.title}
+                                  <button 
+                                    onClick={() => handleRevokeAssignment(assignment.courseId, l.id)}
+                                    className={`ml-1 transition-colors ${confirmDeleteId === `${assignment.courseId}-${l.id}` ? 'text-red-600 bg-red-100 rounded-full p-0.5' : 'text-slate-300 hover:text-red-500'}`}
+                                    title="Revoke Assignment"
+                                  >
+                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                                  </button>
+                                </span>
+                              </div>
                             )) : (
                               <span className="text-xs text-slate-400 italic">No courses assigned yet.</span>
                             )}

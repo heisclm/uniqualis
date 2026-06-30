@@ -55,7 +55,7 @@ export async function PUT(req: NextRequest) {
     // Malicious attempts to overwrite studentIdNumber or relationships will be ignored.
     const { 
       notifyWeeklyDigest, notifyLowAverage, notifyEvalWindow, notifySubmissionReceipt,
-      firstName, lastName, email, title, officeHours, shortBio
+      firstName, lastName, email, title, officeHours, shortBio, profileImageUrl
     } = body;
 
     const updatedUser = await prisma.user.update({
@@ -71,6 +71,7 @@ export async function PUT(req: NextRequest) {
         notifyLowAverage: notifyLowAverage ?? undefined,
         notifyEvalWindow: notifyEvalWindow ?? undefined,
         notifySubmissionReceipt: notifySubmissionReceipt ?? undefined,
+        profileImageUrl: profileImageUrl ?? undefined,
       }
     });
 

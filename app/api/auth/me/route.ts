@@ -1,17 +1,32 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { verifyToken } from "@/lib/auth";
 
 export async function GET(req: NextRequest) {
   try {
-    const userId = req.headers.get("x-user-id");
-    const userRole = req.headers.get("x-user-role") || "STUDENT";
+    let userId = req.headers.get("x-user-id");
+    let userRole = req.headers.get("x-user-role");
+
+    const sessionToken = req.cookies.get('uniqualis_session')?.value;
+    
+    if (sessionToken) {
+        try {
+            const payload = await verifyToken(sessionToken);
+            if (payload) {
+                userId = payload.sub as string;
+                userRole = payload.role as string;
+            }
+        } catch(e) {}
+    }
+    
+    userRole = userRole || "STUDENT";
     
     const getFallbackUser = (role: string, id: string) => {
       switch (role) {
         case "LECTURER":
           return { id, firstName: "Jonathan", lastName: "Vance", email: "j.vance@faculty.uniqualis.edu", role, profileImageUrl: null };
         case "ADMIN":
-          return { id, firstName: "System", lastName: "Administrator", email: "admin@uniqualis.edu", role, profileImageUrl: null };
+          return { id, firstName: "System", lastName: "Admin", email: "admin@uniqualis.edu", role, profileImageUrl: null };
         case "OFFICIAL":
           return { id, firstName: "Quality", lastName: "Assurance", email: "qa@uniqualis.edu", role, profileImageUrl: null };
         default:

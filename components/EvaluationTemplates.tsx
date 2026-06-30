@@ -1,57 +1,68 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "motion/react";
-import { Plus, LayoutTemplate, Settings2, Trash2, Edit3, Target, Save, X, Search, FileText } from "lucide-react";
+import { Plus, LayoutTemplate, Settings2, Trash2, Edit3, Target, Save, X, Search, FileText, Loader2 } from "lucide-react";
 
 interface Criterion {
-  id: string;
+  id?: string;
   name: string;
   type: "scale" | "qualitative";
 }
 
 interface Template {
-  id: string;
+  id?: string;
   name: string;
-  department: string;
+  departmentId: string | null;
+  departmentName?: string;
   criteria: Criterion[];
-  status: "active" | "draft";
+  status: "ACTIVE" | "DRAFT";
 }
 
 export function EvaluationTemplates() {
   const [activeTab, setActiveTab] = useState<"list" | "builder">("list");
+  const [templates, setTemplates] = useState<Template[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   
-  const [templates, setTemplates] = useState<Template[]>([
-    {
-      id: "TPL-01",
-      name: "Standard Academic Evaluation",
-      department: "All Departments",
-      status: "active",
-      criteria: [
-        { id: "c1", name: "Course Content Clarity", type: "scale" },
-        { id: "c2", name: "Lecturer Punctuality", type: "scale" },
-        { id: "c3", name: "Additional Comments", type: "qualitative" },
-      ]
-    },
-    {
-      id: "TPL-02",
-      name: "Lab Session Assessment",
-      department: "Computer Science",
-      status: "active",
-      criteria: [
-        { id: "c1", name: "Equipment Availability", type: "scale" },
-        { id: "c2", name: "Practical Support", type: "scale" },
-      ]
-    }
-  ]);
-
   const [builderState, setBuilderState] = useState<Template>({
-    id: "",
     name: "",
-    department: "All Departments",
-    status: "draft",
+    departmentId: "ALL",
+    status: "DRAFT",
     criteria: []
   });
+
+  const fetchTemplates = async () => {
+    try {
+      setIsLoading(true);
+      const res = await fetch("/api/official/templates");
+      if (res.ok) {
+        const data = await res.json();
+        const mapped = data.templates.map((t: any) => ({
+          id: t.id,
+          name: t.name,
+          departmentId: t.departmentId || "ALL",
+          departmentName: t.departmentId ? "Department Specific" : "All Departments",
+          status: t.status,
+          criteria: t.criteria.map((c: any) => ({
+            id: c.id,
+            name: c.question,
+            type: c.type === "SCALE" ? "scale" : "qualitative"
+          }))
+        }));
+        setTemplates(mapped);
+      }
+    } catch (error) {
+      console.error("Error fetching templates:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchTemplates();
+  }, []);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -87,17 +98,33 @@ export function EvaluationTemplates() {
     }));
   };
 
-  const saveTemplate = () => {
+  const saveTemplate = async () => {
     if (!builderState.name) return;
     
-    if (builderState.id) {
-      setTemplates(prev => prev.map(t => t.id === builderState.id ? builderState : t));
-    } else {
-      setTemplates(prev => [{ ...builderState, id: `TPL-${Date.now()}` }, ...prev]);
+    try {
+      setIsSaving(true);
+      const url = builderState.id 
+        ? `/api/official/templates/${builderState.id}`
+        : `/api/official/templates`;
+      
+      const method = builderState.id ? "PUT" : "POST";
+      
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(builderState)
+      });
+      
+      if (res.ok) {
+        await fetchTemplates();
+        setActiveTab("list");
+        setBuilderState({ name: "", departmentId: "ALL", status: "DRAFT", criteria: [] });
+      }
+    } catch (error) {
+      console.error("Error saving template:", error);
+    } finally {
+      setIsSaving(false);
     }
-    
-    setActiveTab("list");
-    setBuilderState({ id: "", name: "", department: "All Departments", status: "draft", criteria: [] });
   };
 
   const editTemplate = (template: Template) => {
@@ -143,11 +170,11 @@ export function EvaluationTemplates() {
             </button>
             <button 
               onClick={saveTemplate}
-              disabled={!builderState.name || builderState.criteria.length === 0}
+              disabled={!builderState.name || builderState.criteria.length === 0 || isSaving}
               className="h-10 px-4 rounded-xl bg-blue-600 flex items-center justify-center gap-2 text-white shadow-md hover:bg-blue-700 transition-all font-medium text-sm disabled:opacity-50"
             >
-              <Save className="w-4 h-4" />
-              <span>Save Template</span>
+              {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+              <span>{isSaving ? "Saving..." : "Save Template"}</span>
             </button>
           </div>
         )}
@@ -155,64 +182,73 @@ export function EvaluationTemplates() {
 
       {activeTab === "list" ? (
         <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {templates.map((template) => (
-            <div key={template.id} className="bg-white rounded-3xl p-6 shadow-[0_4px_24px_rgba(0,0,0,0.02)] border border-slate-200/60 flex flex-col group hover:border-blue-200 transition-all relative overflow-hidden">
-              <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
-                <button onClick={() => editTemplate(template)} className="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors">
-                  <Edit3 className="w-4 h-4" />
-                </button>
-              </div>
-              
-              <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600 mb-6">
-                <FileText className="w-6 h-6" />
-              </div>
-              
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wide border ${
-                    template.status === 'active' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-slate-100 text-slate-600 border-slate-200'
-                  }`}>
-                    {template.status}
-                  </span>
-                  <span className="text-xs font-semibold text-slate-400 bg-slate-50 px-2 py-0.5 rounded-md border border-slate-100">
-                    {template.department}
-                  </span>
-                </div>
-                
-                <h3 className="text-lg font-bold text-slate-900 tracking-tight leading-tight mb-2 pr-12">{template.name}</h3>
-                
-                <div className="mt-4 pt-4 border-t border-slate-100 space-y-2">
-                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Criteria Included ({template.criteria.length})</p>
-                  <div className="space-y-1.5">
-                    {template.criteria.slice(0, 3).map(c => (
-                      <div key={c.id} className="flex items-center gap-2 text-sm text-slate-600">
-                        <Target className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                        <span className="truncate">{c.name}</span>
-                        <span className="ml-auto shrink-0 text-[10px] font-medium text-slate-400 uppercase">{c.type}</span>
+          {isLoading && templates.length === 0 ? (
+            <div className="col-span-full flex flex-col items-center justify-center h-64">
+              <Loader2 className="w-8 h-8 text-blue-500 animate-spin mb-4" />
+              <p className="text-slate-500 font-medium">Loading templates...</p>
+            </div>
+          ) : (
+            <>
+              {templates.map((template) => (
+                <div key={template.id} className="bg-white rounded-3xl p-6 shadow-[0_4px_24px_rgba(0,0,0,0.02)] border border-slate-200/60 flex flex-col group hover:border-blue-200 transition-all relative overflow-hidden">
+                  <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
+                    <button onClick={() => editTemplate(template)} className="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors">
+                      <Edit3 className="w-4 h-4" />
+                    </button>
+                  </div>
+                  
+                  <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600 mb-6">
+                    <FileText className="w-6 h-6" />
+                  </div>
+                  
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wide border ${
+                        template.status === 'ACTIVE' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-slate-100 text-slate-600 border-slate-200'
+                      }`}>
+                        {template.status}
+                      </span>
+                      <span className="text-xs font-semibold text-slate-400 bg-slate-50 px-2 py-0.5 rounded-md border border-slate-100">
+                        {template.departmentName}
+                      </span>
+                    </div>
+                    
+                    <h3 className="text-lg font-bold text-slate-900 tracking-tight leading-tight mb-2 pr-12">{template.name}</h3>
+                    
+                    <div className="mt-4 pt-4 border-t border-slate-100 space-y-2">
+                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Criteria Included ({template.criteria.length})</p>
+                      <div className="space-y-1.5">
+                        {template.criteria.slice(0, 3).map(c => (
+                          <div key={c.id} className="flex items-center gap-2 text-sm text-slate-600">
+                            <Target className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                            <span className="truncate">{c.name}</span>
+                            <span className="ml-auto shrink-0 text-[10px] font-medium text-slate-400 uppercase">{c.type}</span>
+                          </div>
+                        ))}
+                        {template.criteria.length > 3 && (
+                          <p className="text-xs text-slate-400 italic">+{template.criteria.length - 3} more criteria...</p>
+                        )}
                       </div>
-                    ))}
-                    {template.criteria.length > 3 && (
-                      <p className="text-xs text-slate-400 italic">+{template.criteria.length - 3} more criteria...</p>
-                    )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
-          ))}
-          
-          <button 
-            onClick={() => {
-              setBuilderState({ id: "", name: "", department: "All Departments", status: "draft", criteria: [] });
-              setActiveTab("builder");
-            }}
-            className="bg-slate-50/50 rounded-3xl p-6 border-2 border-dashed border-slate-200 flex flex-col items-center justify-center text-slate-500 hover:text-blue-600 hover:border-blue-300 hover:bg-blue-50/50 transition-all min-h-[300px]"
-          >
-            <div className="w-12 h-12 rounded-full bg-white shadow-sm flex items-center justify-center mb-4">
-              <Plus className="w-6 h-6" />
-            </div>
-            <span className="font-semibold">Create New Template</span>
-            <span className="text-xs text-slate-400 mt-1">Start from scratch</span>
-          </button>
+              ))}
+              
+              <button 
+                onClick={() => {
+                  setBuilderState({ name: "", departmentId: "ALL", status: "DRAFT", criteria: [] });
+                  setActiveTab("builder");
+                }}
+                className="bg-slate-50/50 rounded-3xl p-6 border-2 border-dashed border-slate-200 flex flex-col items-center justify-center text-slate-500 hover:text-blue-600 hover:border-blue-300 hover:bg-blue-50/50 transition-all min-h-[300px]"
+              >
+                <div className="w-12 h-12 rounded-full bg-white shadow-sm flex items-center justify-center mb-4">
+                  <Plus className="w-6 h-6" />
+                </div>
+                <span className="font-semibold">Create New Template</span>
+                <span className="text-xs text-slate-400 mt-1">Start from scratch</span>
+              </button>
+            </>
+          )}
         </motion.div>
       ) : (
         <motion.div variants={itemVariants} className="bg-white rounded-3xl shadow-[0_4px_24px_rgba(0,0,0,0.02)] border border-slate-200/60 overflow-hidden flex flex-col md:flex-row">
@@ -233,14 +269,14 @@ export function EvaluationTemplates() {
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Target Department</label>
               <select 
-                value={builderState.department}
-                onChange={e => setBuilderState({...builderState, department: e.target.value})}
+                value={builderState.departmentId || "ALL"}
+                onChange={e => setBuilderState({...builderState, departmentId: e.target.value})}
                 className="w-full h-11 px-4 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all shadow-sm bg-white"
               >
-                <option>All Departments</option>
-                <option>Computer Science</option>
-                <option>Mathematics</option>
-                <option>Physics</option>
+                <option value="ALL">All Departments (Institution-Wide)</option>
+                <option value="cs-dept">Computer Science</option>
+                <option value="math-dept">Mathematics</option>
+                <option value="phys-dept">Physics</option>
               </select>
             </div>
             
@@ -248,11 +284,11 @@ export function EvaluationTemplates() {
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Status</label>
               <select 
                 value={builderState.status}
-                onChange={e => setBuilderState({...builderState, status: e.target.value as "active" | "draft"})}
+                onChange={e => setBuilderState({...builderState, status: e.target.value as "ACTIVE" | "DRAFT"})}
                 className="w-full h-11 px-4 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all shadow-sm bg-white"
               >
-                <option value="draft">Draft (Not visible)</option>
-                <option value="active">Active (Ready to deploy)</option>
+                <option value="DRAFT">Draft (Not visible)</option>
+                <option value="ACTIVE">Active (Ready to deploy)</option>
               </select>
             </div>
           </div>

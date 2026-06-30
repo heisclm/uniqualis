@@ -84,13 +84,43 @@ export async function GET(req: NextRequest) {
       };
     });
 
+    const unreadNotifications = await prisma.notification.findMany({
+      where: { recipientId: payload.id, isRead: false },
+      orderBy: { createdAt: 'desc' },
+      take: 5
+    });
+
+    const alerts = [];
+    
+    if (flaggedReports > 0) {
+      alerts.push({
+        title: `${flaggedReports} flagged evaluation(s) requiring review`,
+        time: "Just now",
+        type: "critical"
+      });
+    }
+
+    unreadNotifications.forEach(n => {
+      alerts.push({
+        title: n.title,
+        time: "Recently", // Simplified time
+        type: n.title.toLowerCase().includes('violation') || n.title.toLowerCase().includes('error') ? 'critical' : 'warning'
+      });
+    });
+
+    // Fallback if no real alerts yet
+    if (alerts.length === 0) {
+      alerts.push({ title: "System running smoothly", time: "Just now", type: "info" });
+    }
+
     return NextResponse.json({
       totalEvaluations,
       totalDepartments,
       flaggedReports,
       departmentPerformance,
       sentimentBreakdown,
-      topThemes
+      topThemes,
+      alerts
     }, { status: 200 });
 
   } catch (error) {
