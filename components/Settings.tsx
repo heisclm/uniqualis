@@ -427,37 +427,7 @@ export function Settings({
                 </div>
               </div>
 
-              <div className="pt-6 border-t border-slate-100">
-                <h3 className="text-lg font-semibold text-slate-900 tracking-tight mb-4">LMS Integrations</h3>
-                <p className="text-sm text-slate-500 mb-4">Connect UniQualis to your Learning Management System for roster sync.</p>
-                
-                <div className="space-y-3">
-                  {[
-                    { name: "Canvas LMS", connected: true, lastSync: "2 hours ago" },
-                    { name: "Blackboard Learn", connected: false, lastSync: "Never" },
-                    { name: "Moodle", connected: false, lastSync: "Never" }
-                  ].map((lms, idx) => (
-                    <div key={idx} className="flex items-center justify-between p-4 rounded-2xl border border-slate-200 bg-white shadow-sm">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${lms.connected ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-50 text-slate-400'}`}>
-                          <Link className="w-5 h-5" />
-                        </div>
-                        <div>
-                          <h4 className="text-sm font-semibold text-slate-900">{lms.name}</h4>
-                          <p className="text-xs text-slate-500">Last synced: {lms.lastSync}</p>
-                        </div>
-                      </div>
-                      <button className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                        lms.connected 
-                          ? 'bg-slate-100 text-slate-700 hover:bg-slate-200' 
-                          : 'bg-blue-50 text-blue-600 hover:bg-blue-100'
-                      }`}>
-                        {lms.connected ? 'Configure' : 'Connect'}
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
+
             </div>
           )}
 
