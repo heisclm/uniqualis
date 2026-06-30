@@ -21,9 +21,6 @@ export async function GET(req: NextRequest) {
           }
         },
         evaluations: true,
-      },
-      orderBy: {
-        createdAt: "desc"
       }
     });
 
