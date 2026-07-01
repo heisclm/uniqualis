@@ -80,10 +80,10 @@ export async function GET(req: NextRequest) {
       })) as any;
     }
 
-    // Fetch all evaluations submitted by this student
-    const studentEvaluations = await prisma.evaluation.findMany({
-      where: { studentId },
-      select: { courseId: true, courseLecturerId: true }
+    // Fetch all evaluations submitted by this student via tokens
+    const evaluationTokens = await prisma.evaluationToken.findMany({
+      where: { studentId, isUsed: true },
+      select: { courseLecturerId: true }
     });
 
     // Map through enrollments to determine evaluation status
@@ -92,8 +92,8 @@ export async function GET(req: NextRequest) {
       
       const lecturersData = course.lecturers.map(cl => {
         // Check if student has evaluated this specific lecturer for this course
-        const hasEvaluated = studentEvaluations.some(
-          e => e.courseId === course.id && e.courseLecturerId === cl.id
+        const hasEvaluated = evaluationTokens.some(
+          t => t.courseLecturerId === cl.id
         );
         return {
           id: cl.lecturer.id,

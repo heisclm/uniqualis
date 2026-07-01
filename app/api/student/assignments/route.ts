@@ -57,8 +57,8 @@ export async function GET(req: NextRequest) {
             lecturerDepartment: true,
           }
         },
-        evaluations: {
-          where: { studentId }
+        evaluationTokens: {
+          where: { studentId, isUsed: true }
         }
       }
     });

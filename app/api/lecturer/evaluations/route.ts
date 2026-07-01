@@ -134,15 +134,13 @@ export async function GET(req: NextRequest) {
 
     // Sanitize output and apply anonymity masking
     const sanitizedEvaluations = evaluations.map(ev => {
-      const { studentId, ...rest } = ev;
-      
       const isThresholdMet = courseEvalCounts[ev.courseId] >= ANONYMITY_THRESHOLD;
       
       return {
-        ...rest,
+        ...ev,
         isMasked: !isThresholdMet,
-        ratingQuantitative: isThresholdMet ? rest.ratingQuantitative : null,
-        ratingQualitative: isThresholdMet ? rest.ratingQualitative : null,
+        ratingQuantitative: isThresholdMet ? ev.ratingQuantitative : null,
+        ratingQualitative: isThresholdMet ? ev.ratingQualitative : null,
         _totalForCourse: courseEvalCounts[ev.courseId] // purely informational for the frontend
       };
     });

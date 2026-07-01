@@ -115,10 +115,7 @@ export async function GET(req: NextRequest) {
     
     const atRiskCoursesCount = courseAverages.length;
 
-    const sanitizedEvaluations = evaluations.map(ev => {
-      const { studentId, ...rest } = ev;
-      return rest;
-    });
+    const sanitizedEvaluations = evaluations;
 
     return NextResponse.json({ 
       evaluations: sanitizedEvaluations, 

@@ -249,7 +249,7 @@ export function StudentEvaluationForm() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {assignments.map((assignment) => {
-            const isEvaluated = assignment.evaluations && assignment.evaluations.length > 0;
+            const isEvaluated = assignment.evaluationTokens && assignment.evaluationTokens.length > 0;
             return (
               <div 
                 key={assignment.id} 
