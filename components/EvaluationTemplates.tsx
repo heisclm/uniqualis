@@ -32,6 +32,10 @@ export function EvaluationTemplates() {
     criteria: []
   });
 
+  const [departments, setDepartments] = useState<{id: string, name: string}[]>([]);
+  const [userRole, setUserRole] = useState<string>("ADMIN");
+  const [userDepartmentId, setUserDepartmentId] = useState<string | null>(null);
+
   const fetchTemplates = async () => {
     try {
       setIsLoading(true);
@@ -42,7 +46,7 @@ export function EvaluationTemplates() {
           id: t.id,
           name: t.name,
           departmentId: t.departmentId || "ALL",
-          departmentName: t.departmentId ? "Department Specific" : "All Departments",
+          departmentName: t.departmentId ? (data.departments?.find((d: any) => d.id === t.departmentId)?.name || "Department Specific") : "All Departments",
           status: t.status,
           criteria: t.criteria.map((c: any) => ({
             id: c.id,
@@ -51,6 +55,9 @@ export function EvaluationTemplates() {
           }))
         }));
         setTemplates(mapped);
+        if (data.departments) setDepartments(data.departments);
+        if (data.userRole) setUserRole(data.userRole);
+        if (data.userDepartmentId) setUserDepartmentId(data.userDepartmentId);
       }
     } catch (error) {
       console.error("Error fetching templates:", error);
@@ -151,7 +158,13 @@ export function EvaluationTemplates() {
         {activeTab === "list" ? (
           <button 
             onClick={() => {
-              setBuilderState({ id: "", name: "", departmentId: "ALL", status: "DRAFT", criteria: [] });
+              setBuilderState({ 
+                id: "", 
+                name: "", 
+                departmentId: userRole === "OFFICIAL" ? (userDepartmentId || "ALL") : "ALL", 
+                status: "DRAFT", 
+                criteria: [] 
+              });
               setActiveTab("builder");
             }}
             className="h-10 px-4 rounded-xl bg-blue-600 flex items-center justify-center gap-2 text-white shadow-md hover:bg-blue-700 transition-all font-medium text-sm"
@@ -236,7 +249,12 @@ export function EvaluationTemplates() {
               
               <button 
                 onClick={() => {
-                  setBuilderState({ name: "", departmentId: "ALL", status: "DRAFT", criteria: [] });
+                  setBuilderState({ 
+                    name: "", 
+                    departmentId: userRole === "OFFICIAL" ? (userDepartmentId || "ALL") : "ALL", 
+                    status: "DRAFT", 
+                    criteria: [] 
+                  });
                   setActiveTab("builder");
                 }}
                 className="bg-slate-50/50 rounded-3xl p-6 border-2 border-dashed border-slate-200 flex flex-col items-center justify-center text-slate-500 hover:text-blue-600 hover:border-blue-300 hover:bg-blue-50/50 transition-all min-h-[300px]"
@@ -272,11 +290,25 @@ export function EvaluationTemplates() {
                 value={builderState.departmentId || "ALL"}
                 onChange={e => setBuilderState({...builderState, departmentId: e.target.value})}
                 className="w-full h-11 px-4 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all shadow-sm bg-white"
+                disabled={userRole === "OFFICIAL"}
               >
-                <option value="ALL">All Departments (Institution-Wide)</option>
-                <option value="cs-dept">Computer Science</option>
-                <option value="math-dept">Mathematics</option>
-                <option value="phys-dept">Physics</option>
+                {userRole !== "OFFICIAL" && (
+                  <option value="ALL">All Departments (Institution-Wide)</option>
+                )}
+                
+                {userRole === "OFFICIAL" ? (
+                  departments.filter(d => d.id === userDepartmentId).map(dept => (
+                    <option key={dept.id} value={dept.id}>{dept.name}</option>
+                  ))
+                ) : (
+                  departments.map(dept => (
+                    <option key={dept.id} value={dept.id}>{dept.name}</option>
+                  ))
+                )}
+                
+                {userRole === "OFFICIAL" && !userDepartmentId && (
+                  <option value="ALL" disabled>No department assigned</option>
+                )}
               </select>
             </div>
             

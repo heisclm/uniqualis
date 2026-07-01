@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { motion } from "motion/react";
-import { Settings as SettingsIcon, Bell, Shield, Sliders, Database, Key, Check, Smartphone, Monitor, Globe, Link, User } from "lucide-react";
+import { Settings as SettingsIcon, Bell, Shield, Sliders, Database, Key, Check, Smartphone, Monitor, Globe, Link, User, Eye, EyeOff } from "lucide-react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -40,6 +40,7 @@ export function Settings({
   const [pwdNew, setPwdNew] = useState("");
   const [pwdConfirm, setPwdConfirm] = useState("");
   const [isUpdatingPwd, setIsUpdatingPwd] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const { register, handleSubmit, reset, formState: { errors, isDirty, isSubmitting }, control, watch } = useForm<SettingsFormValues>({
     resolver: zodResolver(settingsSchema),
@@ -56,6 +57,17 @@ export function Settings({
       notifySubmissionReceipt: true,
     }
   });
+
+  const [sysSettings, setSysSettings] = useState<any>({
+    currentTermName: "",
+    defaultDepartmentView: "All Departments",
+    evalWindowStartDate: "",
+    evalWindowEndDate: "",
+    autoClosePortal: true
+  });
+  const [sysSettingsOriginal, setSysSettingsOriginal] = useState<any>(null);
+  const [isSysSubmitting, setIsSysSubmitting] = useState(false);
+  const isSysDirty = JSON.stringify(sysSettings) !== JSON.stringify(sysSettingsOriginal);
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -86,6 +98,55 @@ export function Settings({
     };
     fetchSettings();
   }, [reset]);
+
+  useEffect(() => {
+    if (userRole === "ADMIN") {
+      const fetchSysSettings = async () => {
+        try {
+          const res = await fetch('/api/admin/system-settings');
+          if (res.ok) {
+            const data = await res.json();
+            const fmt = {
+              currentTermName: data.currentTermName || "",
+              defaultDepartmentView: data.defaultDepartmentView || "All Departments",
+              evalWindowStartDate: data.evalWindowStartDate ? data.evalWindowStartDate.split('T')[0] : "",
+              evalWindowEndDate: data.evalWindowEndDate ? data.evalWindowEndDate.split('T')[0] : "",
+              autoClosePortal: data.autoClosePortal ?? true
+            };
+            setSysSettings(fmt);
+            setSysSettingsOriginal(fmt);
+          }
+        } catch (err) {
+          console.error(err);
+        }
+      };
+      fetchSysSettings();
+    }
+  }, [userRole]);
+
+  const handleUpdateSystemSettings = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      setIsSysSubmitting(true);
+      const res = await fetch('/api/admin/system-settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(sysSettings),
+      });
+      if (res.ok) {
+        toast.success("System configuration updated");
+        setSysSettingsOriginal(sysSettings);
+      } else {
+        const errData = await res.json();
+        toast.error(errData.error || "Failed to update system config");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("An error occurred");
+    } finally {
+      setIsSysSubmitting(false);
+    }
+  };
 
   const handleUpdatePassword = async () => {
     if (pwdNew !== pwdConfirm) {
@@ -386,11 +447,11 @@ export function Settings({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Current Term Name</label>
-                    <input type="text" defaultValue="Fall 2026" className="w-full h-11 px-4 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all" />
+                    <input type="text" value={sysSettings.currentTermName} onChange={e => setSysSettings({...sysSettings, currentTermName: e.target.value})} className="w-full h-11 px-4 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all" />
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Default Department View</label>
-                    <select className="w-full h-11 px-4 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all bg-white">
+                    <select value={sysSettings.defaultDepartmentView} onChange={e => setSysSettings({...sysSettings, defaultDepartmentView: e.target.value})} className="w-full h-11 px-4 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all bg-white">
                       <option>All Departments</option>
                       <option>Computer Science</option>
                       <option>Mathematics</option>
@@ -405,16 +466,16 @@ export function Settings({
                   <div className="flex flex-col sm:flex-row gap-4">
                     <div className="flex-1 space-y-1.5">
                       <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Start Date</label>
-                      <input type="date" defaultValue="2026-11-15" className="w-full h-11 px-4 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-slate-700" />
+                      <input type="date" value={sysSettings.evalWindowStartDate} onChange={e => setSysSettings({...sysSettings, evalWindowStartDate: e.target.value})} className="w-full h-11 px-4 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-slate-700" />
                     </div>
                     <div className="flex-1 space-y-1.5">
                       <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">End Date</label>
-                      <input type="date" defaultValue="2026-12-15" className="w-full h-11 px-4 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-slate-700" />
+                      <input type="date" value={sysSettings.evalWindowEndDate} onChange={e => setSysSettings({...sysSettings, evalWindowEndDate: e.target.value})} className="w-full h-11 px-4 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-slate-700" />
                     </div>
                   </div>
                   <label className="flex items-start gap-3 cursor-pointer group mt-4">
                     <div className="relative flex items-start">
-                      <input type="checkbox" defaultChecked className="peer sr-only" />
+                      <input type="checkbox" checked={sysSettings.autoClosePortal} onChange={e => setSysSettings({...sysSettings, autoClosePortal: e.target.checked})} className="peer sr-only" />
                       <div className="w-5 h-5 rounded border-2 border-slate-300 peer-checked:border-blue-600 peer-checked:bg-blue-600 flex items-center justify-center transition-all">
                         <Check className="w-3 h-3 text-white opacity-0 peer-checked:opacity-100" />
                       </div>
@@ -426,7 +487,16 @@ export function Settings({
                   </label>
                 </div>
               </div>
-
+              <div className="mt-8 pt-6 border-t border-slate-100 flex justify-end gap-3 items-center">
+                <button type="button" onClick={() => setSysSettings(sysSettingsOriginal)} className="h-10 px-5 rounded-xl font-medium text-sm text-slate-600 hover:bg-slate-50 transition-colors">Cancel</button>
+                <button type="button" onClick={handleUpdateSystemSettings} disabled={!isSysDirty || isSysSubmitting} className={`h-10 px-5 rounded-xl font-medium text-sm shadow-md transition-all ${
+                  !isSysDirty || isSysSubmitting 
+                    ? 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200' 
+                    : 'bg-blue-600 text-white hover:bg-blue-700'
+                }`}>
+                  {isSysSubmitting ? 'Saving...' : 'Save Changes'}
+                </button>
+              </div>
 
             </div>
           )}
@@ -438,15 +508,42 @@ export function Settings({
                 <div className="space-y-4 max-w-md">
                   <div className="space-y-1.5">
                     <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Current Password</label>
-                    <input type="password" value={pwdCurrent} onChange={(e) => setPwdCurrent(e.target.value)} placeholder="••••••••" className="w-full h-11 px-4 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all" />
+                    <div className="relative">
+                      <input type={showPassword ? "text" : "password"} value={pwdCurrent} onChange={(e) => setPwdCurrent(e.target.value)} placeholder="••••••••" className="w-full h-11 px-4 pr-12 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all" />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600 focus:outline-none"
+                      >
+                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">New Password</label>
-                    <input type="password" value={pwdNew} onChange={(e) => setPwdNew(e.target.value)} placeholder="••••••••" className="w-full h-11 px-4 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all" />
+                    <div className="relative">
+                      <input type={showPassword ? "text" : "password"} value={pwdNew} onChange={(e) => setPwdNew(e.target.value)} placeholder="••••••••" className="w-full h-11 px-4 pr-12 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all" />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600 focus:outline-none"
+                      >
+                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Confirm New Password</label>
-                    <input type="password" value={pwdConfirm} onChange={(e) => setPwdConfirm(e.target.value)} placeholder="••••••••" className="w-full h-11 px-4 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all" />
+                    <div className="relative">
+                      <input type={showPassword ? "text" : "password"} value={pwdConfirm} onChange={(e) => setPwdConfirm(e.target.value)} placeholder="••••••••" className="w-full h-11 px-4 pr-12 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all" />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600 focus:outline-none"
+                      >
+                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
                   </div>
                   <button type="button" onClick={handleUpdatePassword} disabled={isUpdatingPwd} className="h-10 px-5 rounded-xl font-medium text-sm bg-slate-900 text-white shadow-md hover:bg-slate-800 transition-all disabled:opacity-50">
                     {isUpdatingPwd ? "Updating..." : "Update Password"}
@@ -627,16 +724,18 @@ export function Settings({
           </>
           )}
 
-          <div className="mt-8 pt-6 border-t border-slate-100 flex justify-end gap-3 items-center">
-            <button type="button" onClick={() => reset()} className="h-10 px-5 rounded-xl font-medium text-sm text-slate-600 hover:bg-slate-50 transition-colors">Cancel</button>
-            <button type="submit" disabled={!isDirty || isSubmitting} className={`h-10 px-5 rounded-xl font-medium text-sm shadow-md transition-all ${
-              !isDirty || isSubmitting 
-                ? 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200' 
-                : 'bg-blue-600 text-white hover:bg-blue-700'
-            }`}>
-              {isSubmitting ? 'Saving...' : 'Save Changes'}
-            </button>
-          </div>
+          {activeTab !== "general" && (
+            <div className="mt-8 pt-6 border-t border-slate-100 flex justify-end gap-3 items-center">
+              <button type="button" onClick={() => reset()} className="h-10 px-5 rounded-xl font-medium text-sm text-slate-600 hover:bg-slate-50 transition-colors">Cancel</button>
+              <button type="submit" disabled={!isDirty || isSubmitting} className={`h-10 px-5 rounded-xl font-medium text-sm shadow-md transition-all ${
+                !isDirty || isSubmitting 
+                  ? 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200' 
+                  : 'bg-blue-600 text-white hover:bg-blue-700'
+              }`}>
+                {isSubmitting ? 'Saving...' : 'Save Changes'}
+              </button>
+            </div>
+          )}
         </motion.form>
       </div>
 

@@ -5,7 +5,9 @@ import { Loader2, BookOpen, Clock, CheckCircle2, AlertCircle, FileText, Graduati
 
 export function StudentCourses() {
   const [courses, setCourses] = useState<any[]>([]);
+  const [studentLevel, setStudentLevel] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isUpdatingLevel, setIsUpdatingLevel] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -13,7 +15,8 @@ export function StudentCourses() {
         const res = await fetch('/api/student/courses');
         if (res.ok) {
           const data = await res.json();
-          setCourses(data);
+          setCourses(data.courses || []);
+          setStudentLevel(data.studentLevel);
         }
       } catch (error) {
         console.error("Failed to fetch courses", error);
@@ -21,9 +24,26 @@ export function StudentCourses() {
         setIsLoading(false);
       }
     };
-
     fetchData();
   }, []);
+
+  const handleUpdateLevel = async (level: number) => {
+    setIsUpdatingLevel(true);
+    try {
+      const res = await fetch('/api/student/level', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ level })
+      });
+      if (res.ok) {
+        fetchData();
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsUpdatingLevel(false);
+    }
+  };
 
   const getCourseStatus = (status: string) => {
     if (status === 'COMPLETED') {
@@ -51,18 +71,47 @@ export function StudentCourses() {
 
   return (
     <div className="p-6 md:p-10 max-w-6xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700 ease-out">
-      <div className="mb-8">
-        <h1 className="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight flex items-center gap-3">
-          <BookOpen className="w-8 h-8 text-blue-600" />
-          Active Enrollments
-        </h1>
-        <p className="text-slate-500 mt-2 text-base">
-          A read-only overview of your registered courses and their quality assurance evaluation status.
-        </p>
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight flex items-center gap-3">
+            <BookOpen className="w-8 h-8 text-blue-600" />
+            Active Enrollments
+          </h1>
+          <p className="text-slate-500 mt-2 text-base">
+            An overview of your registered courses and their quality assurance evaluation status.
+          </p>
+        </div>
+        <div className="bg-white p-3 rounded-2xl border border-slate-200/60 shadow-sm flex items-center gap-3">
+          <label className="text-sm font-semibold text-slate-600 ml-1">Current Level:</label>
+          <select 
+            value={studentLevel || ""} 
+            onChange={(e) => handleUpdateLevel(Number(e.target.value))}
+            disabled={isUpdatingLevel}
+            className="h-10 pl-3 pr-8 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all disabled:opacity-50"
+          >
+            <option value="" disabled>Select Level...</option>
+            <option value="100">100 Level</option>
+            <option value="200">200 Level</option>
+            <option value="300">300 Level</option>
+            <option value="400">400 Level</option>
+            <option value="500">500 Level</option>
+          </select>
+          {isUpdatingLevel && <Loader2 className="w-4 h-4 text-blue-600 animate-spin" />}
+        </div>
       </div>
 
       <div className="bg-white rounded-3xl shadow-[0_4px_24px_rgba(0,0,0,0.02)] border border-slate-200/60 overflow-hidden min-h-[400px]">
-        {courses.length === 0 ? (
+        {!studentLevel ? (
+          <div className="flex flex-col items-center justify-center py-20 px-4 text-center">
+            <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mb-4">
+              <GraduationCap className="w-10 h-10 text-blue-400" />
+            </div>
+            <h3 className="text-lg font-bold text-slate-800">Please select your academic level.</h3>
+            <p className="text-slate-500 mt-1 max-w-sm">
+              Choose your current level from the dropdown above to view your courses.
+            </p>
+          </div>
+        ) : courses.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 px-4 text-center">
             <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-4">
               <GraduationCap className="w-10 h-10 text-slate-300" />

@@ -21,6 +21,7 @@ export function HierarchyManagement() {
   const [newCourseCode, setNewCourseCode] = useState("");
   const [newCourseTitle, setNewCourseTitle] = useState("");
   const [newCourseDeptId, setNewCourseDeptId] = useState("");
+  const [newCourseLevel, setNewCourseLevel] = useState("");
   const [assignLecturerId, setAssignLecturerId] = useState("");
   const [assignCourseId, setAssignCourseId] = useState("");
   
@@ -270,12 +271,13 @@ export function HierarchyManagement() {
       const res = await fetch('/api/admin/hierarchy/courses', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: newCourseCode, title: newCourseTitle, departmentId: newCourseDeptId })
+        body: JSON.stringify({ code: newCourseCode, title: newCourseTitle, departmentId: newCourseDeptId, level: newCourseLevel })
       });
       if (res.ok) {
         setNewCourseCode("");
         setNewCourseTitle("");
         setNewCourseDeptId("");
+        setNewCourseLevel("");
         fetchData();
       } else {
         const data = await res.json();
@@ -436,7 +438,7 @@ export function HierarchyManagement() {
                     </div>
                   </div>
                 </div>
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div className="col-span-1">
                     <label className="block text-xs font-semibold text-slate-900 uppercase tracking-wide mb-2">Code</label>
                     <input
@@ -458,6 +460,22 @@ export function HierarchyManagement() {
                       placeholder="Algorithms"
                       className="w-full bg-slate-50/50 border border-slate-200 text-slate-900 rounded-xl px-4 py-3 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-400"
                     />
+                  </div>
+                  <div className="col-span-1">
+                    <label className="block text-xs font-semibold text-slate-900 uppercase tracking-wide mb-2">Level</label>
+                    <select
+                      required
+                      value={newCourseLevel}
+                      onChange={(e) => setNewCourseLevel(e.target.value)}
+                      className="w-full bg-slate-50/50 border border-slate-200 text-slate-900 rounded-xl px-4 py-3 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                    >
+                      <option value="" disabled>Select...</option>
+                      <option value="100">100 Level</option>
+                      <option value="200">200 Level</option>
+                      <option value="300">300 Level</option>
+                      <option value="400">400 Level</option>
+                      <option value="500">500 Level</option>
+                    </select>
                   </div>
                 </div>
                 <button type="submit" className="w-full py-3 bg-blue-600 text-white rounded-xl font-medium shadow-[0_4px_12px_rgba(37,99,235,0.2)] hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 mt-4">

@@ -54,6 +54,7 @@ model Course {
   id           String       @id @default(uuid())
   code         String       @unique // e.g., CS101
   title        String
+  level        Int?         // e.g., 100, 200, 300
   departmentId String
   department   Department   @relation(fields: [departmentId], references: [id], onDelete: Cascade)
   lecturers    CourseLecturer[]
@@ -95,6 +96,7 @@ model User {
   studentFacultyId String?
   studentFaculty   Faculty? @relation("StudentFaculty", fields: [studentFacultyId], references: [id])
   studentIdNumber  String?  @unique // specific to STUDENT
+  studentLevel     Int?     // e.g., 100, 200, 300, 400
 
   lecturerDepartmentId String?
   lecturerDepartment   Department? @relation("LecturerDepartment", fields: [lecturerDepartmentId], references: [id])
@@ -289,4 +291,24 @@ model Criterion {
   order        Int                @default(0)
   createdAt    DateTime           @default(now())
   updatedAt    DateTime           @updatedAt
+}
+
+model PasswordResetToken {
+  id        String   @id @default(uuid())
+  email     String
+  token     String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@unique([email, token])
+}
+
+model SystemSetting {
+  id                    String   @id @default(uuid())
+  currentTermName       String   @default("Fall 2026")
+  defaultDepartmentView String   @default("All Departments")
+  evalWindowStartDate   DateTime @default(now())
+  evalWindowEndDate     DateTime @default(now())
+  autoClosePortal       Boolean  @default(true)
+  updatedAt             DateTime @updatedAt
 }

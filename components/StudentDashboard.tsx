@@ -13,7 +13,13 @@ export function StudentDashboard() {
         const res = await fetch('/api/student/courses');
         if (res.ok) {
           const data = await res.json();
-          setCourses(data);
+          if (data && Array.isArray(data.courses)) {
+            setCourses(data.courses);
+          } else if (Array.isArray(data)) {
+            setCourses(data);
+          } else {
+            setCourses([]);
+          }
         }
       } catch (err) {
         console.error("Failed to fetch courses:", err);

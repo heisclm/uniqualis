@@ -16,14 +16,14 @@ export async function GET(req: NextRequest) {
       select: { officialDepartmentId: true, officialFacultyId: true }
     });
 
-    if (!user) {
+    if (!user && role !== "ADMIN") {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
     const whereClause = role === "ADMIN" ? {} : {
       OR: [
         { departmentId: null },
-        ...(user.officialDepartmentId ? [{ departmentId: user.officialDepartmentId }] : [])
+        ...(user?.officialDepartmentId ? [{ departmentId: user.officialDepartmentId }] : [])
       ]
     };
 
@@ -37,7 +37,16 @@ export async function GET(req: NextRequest) {
       }
     });
 
-    return NextResponse.json({ templates });
+    const departments = await prisma.department.findMany({
+      select: { id: true, name: true }
+    });
+
+    return NextResponse.json({ 
+      templates,
+      departments,
+      userRole: role,
+      userDepartmentId: user?.officialDepartmentId || null
+    });
   } catch (error) {
     console.error("Error fetching templates:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
@@ -58,6 +67,10 @@ export async function POST(req: NextRequest) {
 
     if (!name || !criteria || !Array.isArray(criteria)) {
       return NextResponse.json({ error: "Invalid data" }, { status: 400 });
+    }
+
+    if (role === "OFFICIAL" && (departmentId === "ALL" || departmentId === null)) {
+      return NextResponse.json({ error: "Officials cannot create institution-wide templates" }, { status: 403 });
     }
 
     const template = await prisma.evaluationTemplate.create({

@@ -55,7 +55,7 @@ export function Sidebar({
   };
 
   return (
-    <aside className={`w-[260px] bg-slate-900 text-slate-300 h-screen fixed left-0 top-0 flex flex-col pt-8 pb-6 shadow-2xl z-40 transition-transform duration-300 ease-in-out lg:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+    <aside className={`w-[260px] bg-slate-900/80 backdrop-blur-2xl text-slate-300 h-screen fixed left-0 top-0 flex flex-col pt-8 pb-6 shadow-[4px_0_24px_rgba(0,0,0,0.1)] border-r border-white/5 z-40 transition-transform duration-300 ease-in-out lg:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
       {/* Brand Header */}
       <div className="flex items-center justify-between px-8 mb-10">
         <div className="flex items-center gap-3">

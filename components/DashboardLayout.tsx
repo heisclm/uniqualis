@@ -49,7 +49,12 @@ export function DashboardLayout({ userRole }: DashboardLayoutProps) {
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
   return (
-    <div className="min-h-screen bg-[#F4F7FE] flex">
+    <div className="min-h-screen bg-slate-50 flex relative overflow-hidden">
+      {/* Dynamic Premium Background */}
+      <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay pointer-events-none"></div>
+      <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-indigo-400/20 blur-[120px] pointer-events-none"></div>
+      <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full bg-purple-400/20 blur-[120px] pointer-events-none"></div>
+
       <Sidebar 
         currentView={currentView} 
         setView={(view) => {

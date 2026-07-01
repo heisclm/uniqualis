@@ -37,13 +37,14 @@ export async function POST(req: NextRequest) {
     const payload = await verifyToken(sessionToken);
     if (!payload || payload.role !== 'ADMIN') return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-    const { code, title, departmentId } = await req.json();
+    const { code, title, departmentId, level } = await req.json();
     if (!code || !title || !departmentId) return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
 
     const course = await prisma.course.create({
       data: { 
         code: code.trim().toUpperCase(),
         title: title.trim(),
+        level: level ? parseInt(level.toString()) : null,
         departmentId 
       },
       include: { department: true }
