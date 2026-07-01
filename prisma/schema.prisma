@@ -108,11 +108,11 @@ model User {
   officialDepartmentId String?
   officialDepartment   Department? @relation("DepartmentOfficials", fields: [officialDepartmentId], references: [id])
 
-  evaluationsGiven    Evaluation[]          @relation("StudentEvaluations")
   studentEnrollments  StudentEnrollment[]   @relation("StudentEnrollments")
   adminCommentsMade   AdministrativeComment[]
   lecturerResponses   LecturerResponse[]
   notifications       Notification[]        @relation("UserNotifications")
+  evaluationTokens    EvaluationToken[]     @relation("EvaluationTokens")
   
   // Settings / Preferences
   notifyWeeklyDigest  Boolean @default(true)
@@ -139,6 +139,7 @@ model CourseLecturer {
   lecturer   User     @relation(fields: [lecturerId], references: [id], onDelete: Cascade)
   
   evaluations Evaluation[]
+  evaluationTokens EvaluationToken[]
 
   @@unique([courseId, lecturerId])
   @@index([courseId])
@@ -155,18 +156,13 @@ model Evaluation {
   courseLecturerId String
   courseLecturer   CourseLecturer @relation(fields: [courseLecturerId], references: [id], onDelete: Cascade)
   
-  // Anonymity Protection: The student relation exists to prevent duplicate submissions,
-  // but application logic MUST NOT expose this relation to lecturers or officials.
-  studentId        String
-  student          User           @relation("StudentEvaluations", fields: [studentId], references: [id])
-  
   templateId       String?
   template         EvaluationTemplate? @relation(fields: [templateId], references: [id])
 
   academicDate     DateTime
   timeSlot         String
   
-  ratingQuantitative Int          // 1 to 5 Stars
+  ratingQuantitative Int          // 1 to 5 Stars (Legacy / Summary)
   ratingQualitative  String?      @db.Text
   isFlagged          Boolean        @default(false)
 
@@ -176,13 +172,12 @@ model Evaluation {
 
   adminComments      AdministrativeComment[]
   lecturerResponse   LecturerResponse?
+  responses          EvaluationResponse[]
 
   createdAt        DateTime       @default(now())
 
-  @@unique([studentId, courseLecturerId, academicDate]) // Prevent double evaluation
   @@index([courseId])
   @@index([courseLecturerId])
-  @@index([studentId])
 }
 
 model LecturerResponse {
@@ -291,6 +286,34 @@ model Criterion {
   order        Int                @default(0)
   createdAt    DateTime           @default(now())
   updatedAt    DateTime           @updatedAt
+  
+  responses    EvaluationResponse[]
+}
+
+model EvaluationResponse {
+  id             String     @id @default(uuid())
+  evaluationId   String
+  evaluation     Evaluation @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
+  criterionId    String
+  criterion      Criterion  @relation(fields: [criterionId], references: [id], onDelete: Cascade)
+  score          Int?       // For SCALE
+  text           String?    @db.Text // For QUALITATIVE
+  
+  @@unique([evaluationId, criterionId])
+}
+
+model EvaluationToken {
+  id               String         @id @default(uuid())
+  token            String         @unique
+  studentId        String
+  student          User           @relation("EvaluationTokens", fields: [studentId], references: [id], onDelete: Cascade)
+  courseLecturerId String
+  courseLecturer   CourseLecturer @relation(fields: [courseLecturerId], references: [id], onDelete: Cascade)
+  isUsed           Boolean        @default(false)
+  createdAt        DateTime       @default(now())
+  usedAt           DateTime?
+
+  @@unique([studentId, courseLecturerId])
 }
 
 model PasswordResetToken {

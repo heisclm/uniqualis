@@ -20,23 +20,24 @@ export async function POST(req: NextRequest) {
     
     // Data Sanitization & Extraction
     const body = await req.json();
-    const { courseLecturerId, ratingQuantitative, ratingQualitative, themes } = body;
+    const { courseLecturerId, scaleRatings, qualitativeAnswers, token } = body;
 
-    if (!courseLecturerId || typeof ratingQuantitative !== 'number') {
+    if (!courseLecturerId || !scaleRatings || !token) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    if (ratingQuantitative < 1 || ratingQuantitative > 5) {
-      return NextResponse.json({ error: "Rating must be between 1 and 5" }, { status: 400 });
+    // 1. Strict Check: Verify Evaluation Token
+    const evalToken = await prisma.evaluationToken.findUnique({
+      where: { token }
+    });
+
+    if (!evalToken || evalToken.studentId !== studentId || evalToken.courseLecturerId !== courseLecturerId) {
+      return NextResponse.json({ error: "Invalid or unauthorized evaluation token." }, { status: 403 });
     }
 
-    // Sanitize qualitative feedback (basic HTML escape)
-    const sanitizedFeedback = ratingQualitative
-      ? ratingQualitative.replace(/</g, "&lt;").replace(/>/g, "&gt;").trim()
-      : null;
-
-    // Optional: NLP Analysis for inappropriate language (Simulated for this phase)
-    const isFlagged = checkInappropriateLanguage(sanitizedFeedback);
+    if (evalToken.isUsed) {
+      return NextResponse.json({ error: "This evaluation token has already been consumed." }, { status: 409 });
+    }
 
     // Get Course ID from CourseLecturer relation
     const courseLecturer = await prisma.courseLecturer.findUnique({
@@ -48,54 +49,87 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid course lecturer assignment" }, { status: 404 });
     }
 
-    // 1. Strict Check: Is the student actually enrolled in this course?
-    const enrollment = await prisma.studentEnrollment.findFirst({
-      where: {
-        studentId,
-        courseId: courseLecturer.courseId,
-      }
-    });
-
-    if (!enrollment) {
-      return NextResponse.json({ error: "You are not enrolled in this course." }, { status: 403 });
-    }
-
     // 2. Strict Check: Is the evaluation window currently open?
-    // In a full production app, this would be a query to a SystemSettings table.
-    // For now, we enforce a strict date boundary check.
+    const settings = await prisma.systemSetting.findFirst();
     const today = new Date();
-    const evaluationWindowEnd = new Date(today.getFullYear(), 11, 31); // Dec 31 of current year
-    if (today > evaluationWindowEnd) {
-       return NextResponse.json({ error: "The evaluation window for this academic term is closed." }, { status: 403 });
+    
+    if (settings) {
+      if (today < settings.evalWindowStartDate || today > settings.evalWindowEndDate) {
+        return NextResponse.json({ error: "The evaluation window for this academic term is closed." }, { status: 403 });
+      }
+    } else {
+      const evaluationWindowEnd = new Date(today.getFullYear(), 11, 31);
+      if (today > evaluationWindowEnd) {
+         return NextResponse.json({ error: "The evaluation window for this academic term is closed." }, { status: 403 });
+      }
     }
 
-    // 3. Strict Check: Prevent Duplicates (Anonymity & Integrity)
-    // We store studentId but it will never be returned in GET requests for lecturers/officials
+    // Calculate summary statistics
+    const scaleValues = Object.values(scaleRatings) as number[];
+    const ratingQuantitative = scaleValues.length > 0 
+      ? Math.round(scaleValues.reduce((a, b) => a + b, 0) / scaleValues.length) 
+      : 0;
+
+    const allQualitativeText = Object.values(qualitativeAnswers || {})
+      .filter((text: any) => typeof text === 'string' && text.trim().length > 0)
+      .join('\n\n');
+    
+    const sanitizedFeedback = allQualitativeText.replace(/</g, "&lt;").replace(/>/g, "&gt;").trim();
+    const isFlagged = checkInappropriateLanguage(sanitizedFeedback);
+
     const academicDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
 
-    const existingEval = await prisma.evaluation.findFirst({
-      where: {
-        studentId,
-        courseLecturerId,
-      }
-    });
+    // 3. Create the Evaluation and consume the token in a transaction
+    const evaluation = await prisma.$transaction(async (tx) => {
+      // Mark token as used
+      await tx.evaluationToken.update({
+        where: { id: evalToken.id },
+        data: { isUsed: true, usedAt: new Date() }
+      });
 
-    if (existingEval) {
-      return NextResponse.json({ error: "You have already submitted an evaluation for this lecturer in this course." }, { status: 409 });
-    }
+      // Create anonymous evaluation
+      const evalRecord = await tx.evaluation.create({
+        data: {
+          courseId: courseLecturer.courseId,
+          courseLecturerId,
+          academicDate,
+          timeSlot: `${today.getHours()}:00 - ${today.getHours() + 1}:00`,
+          ratingQuantitative,
+          ratingQualitative: sanitizedFeedback || null,
+          themes: [],
+          isFlagged,
+        }
+      });
 
-    const evaluation = await prisma.evaluation.create({
-      data: {
-        courseId: courseLecturer.courseId,
-        courseLecturerId,
-        studentId,
-        academicDate,
-        timeSlot: `${today.getHours()}:00 - ${today.getHours() + 1}:00`, // Simplification
-        ratingQuantitative,
-        ratingQualitative: sanitizedFeedback,
-        themes: Array.isArray(themes) ? themes : [],
-        isFlagged,
+      // Insert granular responses
+      const responsePromises: any[] = [];
+      for (const [criterionId, score] of Object.entries(scaleRatings)) {
+        responsePromises.push(
+          tx.evaluationResponse.create({
+            data: {
+              evaluationId: evalRecord.id,
+              criterionId,
+              score: score as number,
+            }
+          })
+        );
       }
+      for (const [criterionId, text] of Object.entries(qualitativeAnswers || {})) {
+        if (text && (text as string).trim() !== "") {
+          responsePromises.push(
+            tx.evaluationResponse.create({
+              data: {
+                evaluationId: evalRecord.id,
+                criterionId,
+                text: (text as string).trim(),
+              }
+            })
+          );
+        }
+      }
+      await Promise.all(responsePromises);
+
+      return evalRecord;
     });
 
     if (isFlagged) {

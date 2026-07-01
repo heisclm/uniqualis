@@ -107,9 +107,9 @@ export function DashboardLayout({ userRole }: DashboardLayoutProps) {
           {currentView === "settings" && userRole === "LECTURER" && <Settings userRole={userRole} user={user} />}
           
           {/* Student Dashboards */}
-          {currentView === "dashboard" && userRole === "STUDENT" && <StudentDashboard />}
+          {currentView === "dashboard" && userRole === "STUDENT" && <StudentDashboard setView={setCurrentView} />}
           {currentView === "evaluate" && userRole === "STUDENT" && <StudentEvaluationForm />}
-          {currentView === "courses" && userRole === "STUDENT" && <StudentCourses />}
+          {currentView === "courses" && userRole === "STUDENT" && <StudentCourses setView={setCurrentView} />}
           {currentView === "history" && userRole === "STUDENT" && <EvaluationHistory />}
           {currentView === "settings" && userRole === "STUDENT" && <Settings userRole={userRole} user={user} />}
 

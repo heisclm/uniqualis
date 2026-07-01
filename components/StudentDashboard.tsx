@@ -3,7 +3,7 @@ import { motion } from "motion/react";
 import { CheckCircle2, Clock, AlertCircle, Bell, ChevronRight, BookOpen } from "lucide-react";
 import Link from "next/link";
 
-export function StudentDashboard() {
+export function StudentDashboard({ setView }: { setView: (view: string) => void }) {
   const [courses, setCourses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -141,9 +141,9 @@ export function StudentDashboard() {
                     </div>
                   </div>
                 </div>
-                <Link href={`/dashboard/evaluate/${evalItem.id}`} className={`w-full sm:w-auto h-10 px-5 flex items-center justify-center rounded-xl font-medium text-sm transition-all shadow-sm bg-blue-600 text-white hover:bg-blue-700`}>
+                <button onClick={() => setView('evaluate')} className={`w-full sm:w-auto h-10 px-5 flex items-center justify-center rounded-xl font-medium text-sm transition-all shadow-sm bg-blue-600 text-white hover:bg-blue-700`}>
                   Evaluate
-                </Link>
+                </button>
               </div>
             )) : (
               <div className="bg-slate-50 rounded-2xl border border-slate-200 border-dashed p-8 text-center">

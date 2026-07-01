@@ -96,66 +96,64 @@ export function LecturerCourses() {
               const completionRate = Math.round((course.evaluationsSubmitted / course.studentsEnrolled) * 100) || 0;
               
               return (
-                <div key={course.id} className="bg-white rounded-3xl p-6 shadow-[0_4px_24px_rgba(0,0,0,0.02)] border border-slate-200/60 hover:shadow-[0_8px_30px_rgba(0,0,0,0.04)] transition-shadow group flex flex-col h-full relative overflow-hidden">
-                  {/* Accent line at top */}
-                  <div className={`absolute top-0 left-0 w-full h-1.5 ${activeTerm === 'current' ? 'bg-indigo-500' : 'bg-slate-400'}`}></div>
+                <div key={course.id} className="group relative bg-white rounded-[2rem] p-7 shadow-sm border border-slate-200/50 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col h-full overflow-hidden">
+                  {/* Decorative Background Blob */}
+                  <div className="absolute -top-24 -right-24 w-48 h-48 bg-gradient-to-br from-indigo-50 to-blue-50 rounded-full blur-3xl opacity-50 group-hover:opacity-100 transition-opacity"></div>
                   
-                  <div className="mb-5 mt-1">
-                    <div className="flex justify-between items-start mb-3">
-                      <span className="inline-block px-3 py-1 bg-indigo-50 text-indigo-700 text-xs font-bold rounded-lg border border-indigo-100/50">
-                        {course.code}
-                      </span>
-                      <span className="text-xs font-semibold text-slate-400 bg-slate-50 px-2.5 py-1 rounded-md border border-slate-100">
-                        {course.term}
-                      </span>
+                  <div className="relative z-10 mb-6">
+                    <div className="flex justify-between items-center mb-5">
+                      <div className={`flex items-center justify-center w-12 h-12 rounded-2xl ${activeTerm === 'current' ? 'bg-indigo-50 text-indigo-600' : 'bg-slate-50 text-slate-500'} shadow-sm border border-slate-100`}>
+                        <BookOpen className="w-5 h-5" />
+                      </div>
+                      <div className="flex flex-col items-end gap-1.5">
+                        <span className="inline-block px-2.5 py-1 bg-slate-50 text-slate-600 text-[10px] font-bold rounded-lg border border-slate-100 uppercase tracking-widest">
+                          {course.term}
+                        </span>
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-bold rounded-lg border uppercase tracking-wider ${
+                          course.status === 'ACTIVE' ? 'bg-emerald-50 text-emerald-700 border-emerald-100/50' : 
+                          course.status === 'Archived' ? 'bg-slate-50 text-slate-600 border-slate-200/50' : 
+                          'bg-indigo-50 text-indigo-700 border-indigo-100/50'
+                        }`}>
+                          {course.status === 'ACTIVE' && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>}
+                          {course.status}
+                        </span>
+                      </div>
                     </div>
-                    <h3 className="text-xl font-bold text-slate-900 leading-snug tracking-tight">{course.title}</h3>
+                    
+                    <div>
+                      <span className="text-xs font-bold text-indigo-600/80 tracking-widest block mb-1.5">{course.code}</span>
+                      <h3 className="text-2xl font-extrabold text-slate-900 leading-tight tracking-tight line-clamp-2 group-hover:text-indigo-600 transition-colors">{course.title}</h3>
+                    </div>
                   </div>
                   
-                  <div className="space-y-5 mt-auto pt-5 border-t border-slate-100">
-                    
+                  <div className="space-y-6 mt-auto pt-6 border-t border-slate-100/80 relative z-10">
                     {/* Engagement Metrics */}
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-slate-600 font-medium">Evaluation Completion</span>
-                        <span className="font-bold text-slate-900">{completionRate}%</span>
+                    <div className="space-y-3">
+                      <div className="flex items-end justify-between">
+                        <div className="space-y-0.5">
+                          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest block">Completion Rate</span>
+                          <span className="text-sm font-medium text-slate-600">{course.evaluationsSubmitted} / {course.studentsEnrolled} students</span>
+                        </div>
+                        <span className="text-2xl font-black text-slate-800 tabular-nums tracking-tighter">{completionRate}%</span>
                       </div>
-                      <div className="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden border border-slate-200/50">
+                      
+                      <div className="w-full bg-slate-100/80 rounded-full h-3 overflow-hidden border border-slate-200/50 relative">
                         <div 
-                          className={`h-full rounded-full transition-all duration-1000 ease-out ${
-                            completionRate >= 80 ? 'bg-emerald-500' : 
-                            completionRate >= 40 ? 'bg-indigo-500' : 
-                            completionRate > 0 ? 'bg-amber-500' : 'bg-slate-300'
+                          className={`absolute top-0 left-0 h-full rounded-full transition-all duration-1000 ease-out ${
+                            completionRate >= 80 ? 'bg-gradient-to-r from-emerald-400 to-emerald-500' : 
+                            completionRate >= 40 ? 'bg-gradient-to-r from-indigo-400 to-indigo-500' : 
+                            completionRate > 0 ? 'bg-gradient-to-r from-amber-400 to-amber-500' : 'bg-slate-300'
                           }`}
                           style={{ width: `${completionRate}%` }}
                         ></div>
                       </div>
-                      <div className="text-xs text-slate-500 text-right">
-                        {course.evaluationsSubmitted} of {course.studentsEnrolled} students submitted
-                      </div>
-                    </div>
-
-                    {/* Status */}
-                    <div className="flex items-center justify-between text-sm bg-slate-50 p-3 rounded-xl border border-slate-100">
-                      <span className="text-slate-500 flex items-center gap-2 font-medium">
-                        <Clock className="w-4 h-4" /> 
-                        Window Status
-                      </span>
-                      <span className={`font-bold ${
-                        course.status === 'ACTIVE' ? 'text-emerald-600 flex items-center gap-1.5' : 
-                        course.status === 'Archived' ? 'text-slate-500' : 
-                        'text-indigo-600'
-                      }`}>
-                        {course.status === 'ACTIVE' && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>}
-                        {course.status}
-                      </span>
                     </div>
                   </div>
 
-                  <button className="mt-6 w-full py-3.5 bg-indigo-50 text-indigo-700 text-sm font-bold rounded-xl hover:bg-indigo-100 transition-colors flex items-center justify-center gap-2 group-hover:shadow-sm">
+                  <button className="relative z-10 mt-6 w-full py-3.5 bg-slate-50 hover:bg-indigo-50 text-slate-700 hover:text-indigo-700 text-sm font-bold rounded-xl transition-all duration-300 flex items-center justify-center gap-2 border border-slate-200/60 hover:border-indigo-100">
                     <BarChart3 className="w-4 h-4" />
-                    Drill Down Metrics
-                    <ArrowRight className="w-4 h-4 ml-1 opacity-70" />
+                    <span>Drill Down Metrics</span>
+                    <ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all duration-300 absolute right-6" />
                   </button>
                 </div>
               );

@@ -6,22 +6,6 @@ import { EvaluationCard, type Evaluation } from "@/components/lecturer/Evaluatio
 import { EmptyFeed } from "@/components/lecturer/EmptyFeed";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
 
-const trendData = [
-  { semester: 'Fall 2024', score: 3.8 },
-  { semester: 'Spring 2025', score: 4.2 },
-  { semester: 'Fall 2025', score: 4.1 },
-  { semester: 'Spring 2026', score: 4.5 },
-  { semester: 'Fall 2026', score: 4.7 },
-];
-
-const criteriaData = [
-  { subject: 'Clarity', A: 4.8, fullMark: 5 },
-  { subject: 'Punctuality', A: 4.9, fullMark: 5 },
-  { subject: 'Engagement', A: 4.3, fullMark: 5 },
-  { subject: 'Fairness', A: 4.5, fullMark: 5 },
-  { subject: 'Availability', A: 4.0, fullMark: 5 },
-];
-
 export function LecturerPerformance() {
   const [evaluations, setEvaluations] = useState<Evaluation[]>([]);
   const [courses, setCourses] = useState<{id: string, title: string, code: string}[]>([]);
@@ -52,38 +36,12 @@ export function LecturerPerformance() {
       if (data.courses) setCourses(data.courses);
       if (data.extractedInsights) setInsights(data.extractedInsights);
       
-      // Calculate dynamic trend data based on academic dates
-      if (fetchedEvaluations.length > 0) {
-        const semesterGroups: Record<string, number[]> = {};
-        fetchedEvaluations.forEach(ev => {
-          if (ev.ratingQuantitative) {
-            const date = new Date(ev.academicDate);
-            const semester = `${date.getMonth() > 5 ? 'Fall' : 'Spring'} ${date.getFullYear()}`;
-            if (!semesterGroups[semester]) semesterGroups[semester] = [];
-            semesterGroups[semester].push(ev.ratingQuantitative);
-          }
-        });
-        
-        const calculatedTrends = Object.keys(semesterGroups).map(sem => ({
-          semester: sem,
-          score: Number((semesterGroups[sem].reduce((a,b) => a+b, 0) / semesterGroups[sem].length).toFixed(1))
-        })).sort((a, b) => a.semester.localeCompare(b.semester));
-        
-        setDynamicTrendData(calculatedTrends.length > 0 ? calculatedTrends : trendData);
-        
-        // Mock criteria slightly varied around the average to show dynamic feel
-        const allRatings = fetchedEvaluations.map(e => e.ratingQuantitative || 0).filter(r => r > 0);
-        const avg = allRatings.length > 0 ? allRatings.reduce((a,b) => a+b, 0) / allRatings.length : 4.0;
-        setDynamicCriteria([
-          { subject: 'Clarity', A: Number(Math.min(5, avg + 0.2).toFixed(1)), fullMark: 5 },
-          { subject: 'Punctuality', A: Number(Math.min(5, avg + 0.4).toFixed(1)), fullMark: 5 },
-          { subject: 'Engagement', A: Number(Math.max(1, avg - 0.3).toFixed(1)), fullMark: 5 },
-          { subject: 'Fairness', A: Number(avg.toFixed(1)), fullMark: 5 },
-          { subject: 'Availability', A: Number(Math.max(1, avg - 0.1).toFixed(1)), fullMark: 5 },
-        ]);
+      if (data.analytics) {
+        setDynamicTrendData(data.analytics.trendData);
+        setDynamicCriteria(data.analytics.criteriaData);
       } else {
-        setDynamicTrendData(trendData);
-        setDynamicCriteria(criteriaData);
+        setDynamicTrendData([]);
+        setDynamicCriteria([]);
       }
       
     } catch (err: any) {
@@ -191,18 +149,25 @@ export function LecturerPerformance() {
             <span className="text-xs font-semibold px-2.5 py-1 bg-indigo-50 text-indigo-600 rounded-lg">Historical</span>
           </div>
           <div className="h-[300px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={dynamicTrendData.length > 0 ? dynamicTrendData : trendData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
-                <Line type="monotone" dataKey="score" stroke="#6366f1" strokeWidth={3} activeDot={{ r: 8 }} />
-                <CartesianGrid stroke="#f1f5f9" strokeDasharray="5 5" />
-                <XAxis dataKey="semester" stroke="#94a3b8" fontSize={12} tickMargin={10} axisLine={false} tickLine={false} />
-                <YAxis stroke="#94a3b8" fontSize={12} domain={[0, 5]} ticks={[0, 1, 2, 3, 4, 5]} axisLine={false} tickLine={false} />
-                <RechartsTooltip 
-                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}
-                  cursor={{ stroke: '#e2e8f0', strokeWidth: 2, strokeDasharray: '5 5' }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
+            {dynamicTrendData.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={dynamicTrendData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+                  <Line type="monotone" dataKey="score" stroke="#6366f1" strokeWidth={3} activeDot={{ r: 8 }} />
+                  <CartesianGrid stroke="#f1f5f9" strokeDasharray="5 5" />
+                  <XAxis dataKey="semester" stroke="#94a3b8" fontSize={12} tickMargin={10} axisLine={false} tickLine={false} />
+                  <YAxis stroke="#94a3b8" fontSize={12} domain={[0, 5]} ticks={[0, 1, 2, 3, 4, 5]} axisLine={false} tickLine={false} />
+                  <RechartsTooltip 
+                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}
+                    cursor={{ stroke: '#e2e8f0', strokeWidth: 2, strokeDasharray: '5 5' }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex flex-col items-center justify-center h-full w-full text-slate-400">
+                <TrendingUp className="w-8 h-8 mb-2 opacity-20" />
+                <p className="text-sm font-medium">No performance data yet</p>
+              </div>
+            )}
           </div>
         </div>
 
@@ -216,17 +181,24 @@ export function LecturerPerformance() {
             <span className="text-xs font-semibold px-2.5 py-1 bg-emerald-50 text-emerald-600 rounded-lg">Current Term</span>
           </div>
           <div className="h-[300px] w-full flex items-center justify-center">
-            <ResponsiveContainer width="100%" height="100%">
-              <RadarChart cx="50%" cy="50%" outerRadius="70%" data={dynamicCriteria.length > 0 ? dynamicCriteria : criteriaData}>
-                <PolarGrid stroke="#e2e8f0" />
-                <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748b', fontSize: 12, fontWeight: 500 }} />
-                <PolarRadiusAxis angle={30} domain={[0, 5]} tick={false} axisLine={false} />
-                <Radar name="Score" dataKey="A" stroke="#10b981" strokeWidth={2} fill="#10b981" fillOpacity={0.2} />
-                <RechartsTooltip 
-                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}
-                />
-              </RadarChart>
-            </ResponsiveContainer>
+            {dynamicCriteria.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <RadarChart cx="50%" cy="50%" outerRadius="70%" data={dynamicCriteria}>
+                  <PolarGrid stroke="#e2e8f0" />
+                  <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748b', fontSize: 12, fontWeight: 500 }} />
+                  <PolarRadiusAxis angle={30} domain={[0, 5]} tick={false} axisLine={false} />
+                  <Radar name="Score" dataKey="A" stroke="#10b981" strokeWidth={2} fill="#10b981" fillOpacity={0.2} />
+                  <RechartsTooltip 
+                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}
+                  />
+                </RadarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex flex-col items-center justify-center h-full w-full text-slate-400">
+                <BarChart2 className="w-8 h-8 mb-2 opacity-20" />
+                <p className="text-sm font-medium">Insufficient data for breakdown</p>
+              </div>
+            )}
           </div>
         </div>
       </div>

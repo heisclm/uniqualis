@@ -22,7 +22,24 @@ export async function GET(req: NextRequest) {
       select: { courseId: true }
     });
     
-    const enrolledCourseIds = enrollments.map(e => e.courseId);
+    let enrolledCourseIds = enrollments.map(e => e.courseId);
+
+    if (enrolledCourseIds.length === 0) {
+      const student = await prisma.user.findUnique({
+        where: { id: studentId },
+        select: { studentLevel: true, studentFacultyId: true }
+      });
+      if (student?.studentLevel && student?.studentFacultyId) {
+        const availableCourses = await prisma.course.findMany({
+          where: {
+            level: student.studentLevel,
+            department: { facultyId: student.studentFacultyId }
+          },
+          select: { id: true }
+        });
+        enrolledCourseIds = availableCourses.map(c => c.id);
+      }
+    }
 
     const assignments = await prisma.courseLecturer.findMany({
       where: {
