@@ -87,3 +87,11 @@ UniQualis is a comprehensive system designed to streamline and automate the proc
 - **Edge Authorization**: All routes and API endpoints are protected by Next.js Middleware enforcing strict role-based access control (RBAC).
 - **Database Indexing**: Optimized Prisma schema with compound indexes on frequently queried fields to ensure rapid retrieval in live dashboards.
 - **Resiliency**: Implements graceful error boundaries (`error.tsx`) providing user recovery options without application crashes.
+
+
+Vercel Build Command (UI way)
+In your Vercel dashboard → Project Settings → Build & Development Settings:
+Set:
+```bash
+   prisma generate && npm run build
+   ```

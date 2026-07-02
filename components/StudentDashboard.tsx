@@ -71,7 +71,7 @@ export function StudentDashboard({ setView }: { setView: (view: string) => void 
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
-        const res = await fetch('/api/notifications');
+        const res = await fetch('/api/notifications?all=true');
         if (res.ok) {
           const data = await res.json();
           if (data.notifications) {
@@ -212,19 +212,21 @@ export function StudentDashboard({ setView }: { setView: (view: string) => void 
           <h2 className="text-lg font-semibold text-slate-900 tracking-tight">Recent Activity</h2>
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
             <div className="divide-y divide-slate-100">
-              {recentActivity.map((activity) => (
-                <div key={activity.id} className={`p-4 flex items-start gap-3 hover:bg-slate-50 transition-colors cursor-default ${!activity.read ? 'bg-emerald-50/30' : ''}`}>
-                  <div className={`mt-0.5 shrink-0 ${!activity.read ? 'text-emerald-600' : 'text-slate-400'}`}>
+              {recentActivity.map((activity) => {
+                const isRead = activity.isRead !== undefined ? activity.isRead : activity.read;
+                return (
+                <div key={activity.id} className={`p-4 flex items-start gap-3 hover:bg-slate-50 transition-colors cursor-default ${!isRead ? 'bg-emerald-50/30' : ''}`}>
+                  <div className={`mt-0.5 shrink-0 ${!isRead ? 'text-emerald-600' : 'text-slate-400'}`}>
                     <Bell className="w-4 h-4" />
                   </div>
                   <div>
-                    <p className={`text-sm ${!activity.isRead && !activity.read ? 'font-semibold text-slate-900' : 'font-medium text-slate-700'}`}>
+                    <p className={`text-sm ${!isRead ? 'font-semibold text-slate-900' : 'font-medium text-slate-700'}`}>
                       {activity.title}
                     </p>
                     <p className="text-xs text-slate-500 mt-1">{activity.createdAt ? new Date(activity.createdAt).toLocaleDateString() : activity.date}</p>
                   </div>
                 </div>
-              ))}
+              )})}
             </div>
             <button className="w-full p-3 text-sm font-medium text-emerald-600 hover:bg-slate-50 border-t border-slate-100 flex items-center justify-center gap-1 transition-colors">
               View All <ChevronRight className="w-4 h-4" />

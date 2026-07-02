@@ -99,9 +99,9 @@ export function Sidebar({
   const theme = getThemeClasses();
 
   return (
-    <aside className={`w-[260px] ${theme.sidebarBg} backdrop-blur-2xl text-slate-300 h-screen fixed left-0 top-0 flex flex-col pt-8 pb-6 shadow-[4px_0_24px_rgba(0,0,0,0.15)] border-r border-white/5 z-40 transition-transform duration-300 ease-in-out lg:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+    <aside className={`w-[260px] ${theme.sidebarBg} backdrop-blur-2xl text-slate-300 h-[100dvh] fixed left-0 top-0 flex flex-col pt-8 pb-6 shadow-[4px_0_24px_rgba(0,0,0,0.15)] border-r border-white/5 z-40 transition-transform duration-300 ease-in-out lg:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
       {/* Brand Header */}
-      <div className="flex items-center justify-between px-8 mb-10">
+      <div className="flex items-center justify-between px-8 mb-10 shrink-0">
         <div className="flex items-center gap-3">
           <Image src="/logo.png" alt="UniQualis Logo" width={32} height={32} className="shrink-0" />
           <span className="text-xl font-bold tracking-tight text-white drop-shadow-sm">UniQualis</span>
@@ -112,7 +112,7 @@ export function Sidebar({
       </div>
 
       {/* Profile Section */}
-      <div className="px-5 mb-8">
+      <div className="px-5 mb-8 shrink-0">
         <div className={`flex items-center justify-between p-3 rounded-2xl border transition-all cursor-pointer group ${theme.profileCard}`}>
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-slate-800/80 border border-white/10 flex items-center justify-center text-white font-semibold shadow-inner shrink-0 overflow-hidden">
@@ -135,7 +135,7 @@ export function Sidebar({
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-4 space-y-1.5 overflow-y-auto custom-scrollbar">
+      <nav className="flex-1 min-h-0 px-4 space-y-1.5 overflow-y-auto custom-scrollbar">
         {navItems.map((item) => {
           const isActive = currentView === item.id;
           return (
@@ -161,7 +161,7 @@ export function Sidebar({
       </nav>
 
       {/* Logout */}
-      <div className="px-4 mt-auto pt-4">
+      <div className="px-4 mt-auto pt-4 shrink-0">
         <div className={`w-full h-px mb-4 ${theme.divider}`} />
         <button 
           onClick={handleLogout}
