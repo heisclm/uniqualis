@@ -12,7 +12,7 @@ const SignupSchema = z.object({
   password: z.string().min(8),
   // Student specifics
   studentIdNumber: z.string().optional(),
-  facultyId: z.string().uuid().optional(),
+  departmentId: z.string().uuid().optional(),
 });
 
 export async function POST(req: NextRequest) {
@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Validation failed", details: validationResult.error.format() }, { status: 400 });
     }
 
-    const { accountType, firstName, lastName, email, password, studentIdNumber, facultyId } = validationResult.data;
+    const { accountType, firstName, lastName, email, password, studentIdNumber, departmentId } = validationResult.data;
 
     // Check for existing user in main table
     const existingUser = await prisma.user.findUnique({ where: { email } });
@@ -36,8 +36,8 @@ export async function POST(req: NextRequest) {
     const passwordHash = await hashPassword(password);
 
     if (accountType === "STUDENT") {
-      if (!studentIdNumber || !facultyId) {
-        return NextResponse.json({ error: "Student ID and Faculty are required for students" }, { status: 400 });
+      if (!studentIdNumber || !departmentId) {
+        return NextResponse.json({ error: "Student ID and Department are required for students" }, { status: 400 });
       }
 
       const existingStudent = await prisma.user.findUnique({ where: { studentIdNumber } });
@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
           passwordHash,
           role: "STUDENT",
           studentIdNumber,
-          studentFacultyId: facultyId,
+          studentDepartmentId: departmentId,
         }
       });
     } else if (accountType === "STAFF") {

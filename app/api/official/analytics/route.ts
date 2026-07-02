@@ -1,14 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { verifyToken } from "@/lib/auth";
 
 export async function GET(req: NextRequest) {
   try {
-    const userId = req.headers.get("x-user-id");
-    const role = req.headers.get("x-user-role");
-
-    if (!userId || role !== "OFFICIAL") {
+    const sessionToken = req.cookies.get('uniqualis_session')?.value;
+    if (!sessionToken) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const payload = await verifyToken(sessionToken);
+    if (!payload || (payload.role !== "OFFICIAL" && payload.role !== "ADMIN")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+    const userId = payload.sub as string;
+    const role = payload.role as string;
 
     const { searchParams } = new URL(req.url);
     const filter = searchParams.get("filter") || "3-years"; // "5-years", "3-years", "1-year"
@@ -89,10 +92,10 @@ export async function GET(req: NextRequest) {
 
     // Format Yearly Data
     const yearlyData = Object.keys(yearlyMap).sort().map((year) => {
-      const avgSatisfaction = (yearlyMap[year].totalRating / yearlyMap[year].count) * 20; // Scale 1-5 to 1-100%
+      const avgSatisfaction = (yearlyMap[year].totalRating / yearlyMap[year].count);
       return {
         year,
-        satisfaction: Math.round(avgSatisfaction),
+        satisfaction: Number(avgSatisfaction.toFixed(1)),
         // Engagement could be simulated or actual if we query enrollments per year.
         // We'll simulate engagement here based on total evaluations relative to an expected baseline or just scale it.
         engagement: Math.min(100, Math.round(50 + (yearlyMap[year].count * 5))) // Mocked engagement based on count

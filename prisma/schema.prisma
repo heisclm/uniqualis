@@ -28,7 +28,6 @@ model Faculty {
   name        String       @unique
   departments Department[]
   officials   User[]       @relation("FacultyOfficials")
-  students    User[]       @relation("StudentFaculty")
   provisionedAccounts ProvisionedAccount[] @relation("ProvisionedFaculty")
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
@@ -42,6 +41,7 @@ model Department {
   courses     Course[]
   lecturers   User[]       @relation("LecturerDepartment")
   officials   User[]       @relation("DepartmentOfficials")
+  students    User[]       @relation("StudentDepartment")
   provisionedAccounts ProvisionedAccount[] @relation("ProvisionedDepartment")
   evaluationTemplates EvaluationTemplate[]
   createdAt   DateTime     @default(now())
@@ -93,8 +93,8 @@ model User {
   profileImageUrl String?   // Hosted on Cloudinary
 
   // Relationships based on Role
-  studentFacultyId String?
-  studentFaculty   Faculty? @relation("StudentFaculty", fields: [studentFacultyId], references: [id])
+  studentDepartmentId String?
+  studentDepartment   Department? @relation("StudentDepartment", fields: [studentDepartmentId], references: [id])
   studentIdNumber  String?  @unique // specific to STUDENT
   studentLevel     Int?     // e.g., 100, 200, 300, 400
 
@@ -277,17 +277,23 @@ model EvaluationTemplate {
 }
 
 model Criterion {
-  id           String             @id @default(uuid())
-  templateId   String
-  template     EvaluationTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
-  question     String
-  type         String             // SCALE, QUALITATIVE
-  options      String?            // JSON string for options if any
-  order        Int                @default(0)
-  createdAt    DateTime           @default(now())
-  updatedAt    DateTime           @updatedAt
+  id                  String             @id @default(uuid())
+  templateId          String
+  template            EvaluationTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  question            String
+  type                String             // SCALE, QUALITATIVE, MULTIPLE_CHOICE
+  options             String?            // JSON string for options if any
+  order               Int                @default(0)
   
-  responses    EvaluationResponse[]
+  // Conditional Logic
+  conditionalOnId     String?            // ID of the Criterion this one depends on
+  conditionalOperator String?            // EQUALS, NOT_EQUALS, GREATER_THAN, LESS_THAN, CONTAINS
+  conditionalValue    String?            // The value to compare against
+
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+  
+  responses           EvaluationResponse[]
 }
 
 model EvaluationResponse {

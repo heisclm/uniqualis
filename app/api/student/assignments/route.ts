@@ -27,13 +27,13 @@ export async function GET(req: NextRequest) {
     if (enrolledCourseIds.length === 0) {
       const student = await prisma.user.findUnique({
         where: { id: studentId },
-        select: { studentLevel: true, studentFacultyId: true }
+        select: { studentLevel: true, studentDepartmentId: true }
       });
-      if (student?.studentLevel && student?.studentFacultyId) {
+      if (student?.studentLevel && student?.studentDepartmentId) {
         const availableCourses = await prisma.course.findMany({
           where: {
             level: student.studentLevel,
-            department: { facultyId: student.studentFacultyId }
+            departmentId: student.studentDepartmentId
           },
           select: { id: true }
         });

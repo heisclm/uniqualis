@@ -67,7 +67,7 @@ export function StudentCourses({ setView }: { setView?: (view: string) => void }
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-[60vh] w-full">
-        <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+        <div className="w-8 h-8 border-4 border-emerald-200 border-t-emerald-600 rounded-full animate-spin"></div>
       </div>
     );
   }
@@ -77,7 +77,7 @@ export function StudentCourses({ setView }: { setView?: (view: string) => void }
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight flex items-center gap-3">
-            <BookOpen className="w-8 h-8 text-blue-600" />
+            <BookOpen className="w-8 h-8 text-emerald-600" />
             Active Enrollments
           </h1>
           <p className="text-slate-500 mt-2 text-base max-w-2xl">
@@ -90,7 +90,7 @@ export function StudentCourses({ setView }: { setView?: (view: string) => void }
             value={studentLevel || ""} 
             onChange={(e) => handleUpdateLevel(Number(e.target.value))}
             disabled={isUpdatingLevel}
-            className="flex-1 md:w-40 h-10 pl-3 pr-8 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all disabled:opacity-50"
+            className="flex-1 md:w-40 h-10 pl-3 pr-8 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all disabled:opacity-50"
           >
             <option value="" disabled>Select Level...</option>
             <option value="100">100 Level</option>
@@ -99,15 +99,15 @@ export function StudentCourses({ setView }: { setView?: (view: string) => void }
             <option value="400">400 Level</option>
             <option value="500">500 Level</option>
           </select>
-          {isUpdatingLevel && <Loader2 className="w-4 h-4 text-blue-600 animate-spin shrink-0" />}
+          {isUpdatingLevel && <Loader2 className="w-4 h-4 text-emerald-600 animate-spin shrink-0" />}
         </div>
       </div>
 
       <div className="min-h-[400px]">
         {!studentLevel ? (
           <div className="bg-white rounded-3xl shadow-[0_4px_24px_rgba(0,0,0,0.02)] border border-slate-200/60 flex flex-col items-center justify-center py-20 px-4 text-center">
-            <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mb-4">
-              <GraduationCap className="w-10 h-10 text-blue-400" />
+            <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mb-4">
+              <GraduationCap className="w-10 h-10 text-emerald-400" />
             </div>
             <h3 className="text-lg font-bold text-slate-800">Please select your academic level</h3>
             <p className="text-slate-500 mt-1 max-w-sm">
@@ -131,10 +131,10 @@ export function StudentCourses({ setView }: { setView?: (view: string) => void }
               
               return (
                 <div key={course.enrollmentId} className="bg-white rounded-3xl shadow-sm border border-slate-200/60 p-6 flex flex-col h-full hover:shadow-md transition-shadow relative overflow-hidden group">
-                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 to-emerald-600 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                   
                   <div className="flex justify-between items-start mb-6 gap-4">
-                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50/50 flex flex-col items-center justify-center text-blue-700 border border-blue-100/50 shrink-0 shadow-sm relative">
+                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-50 to-emerald-100/50 flex flex-col items-center justify-center text-emerald-700 border border-emerald-200/50 shrink-0 shadow-sm relative">
                        <span className="text-sm font-bold tracking-wider">{course.code.substring(0, 3)}</span>
                        <span className="text-lg font-black leading-none">{course.code.substring(3)}</span>
                     </div>
@@ -179,7 +179,7 @@ export function StudentCourses({ setView }: { setView?: (view: string) => void }
                     ) : (
                       <button 
                         onClick={() => setView ? setView('evaluate') : null}
-                        className="w-full inline-flex justify-center items-center gap-2 px-5 py-2.5 bg-slate-900 hover:bg-blue-600 text-white rounded-xl text-sm font-bold shadow-md hover:shadow-lg transition-all active:scale-[0.98]"
+                        className="w-full inline-flex justify-center items-center gap-2 px-5 py-2.5 bg-slate-900 hover:bg-emerald-600 text-white rounded-xl text-sm font-bold shadow-md hover:shadow-lg transition-all active:scale-[0.98]"
                       >
                         <FileText className="w-4 h-4" />
                         Evaluate Course

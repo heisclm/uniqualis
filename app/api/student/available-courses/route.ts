@@ -12,21 +12,19 @@ export async function GET(req: NextRequest) {
 
     const studentId = payload.sub as string;
 
-    // Get student's faculty
+    // Get student's department
     const student = await prisma.user.findUnique({
       where: { id: studentId },
-      select: { studentFacultyId: true }
+      select: { studentDepartmentId: true }
     });
 
-    if (!student?.studentFacultyId) {
-      return NextResponse.json({ error: "Student is not assigned to a faculty." }, { status: 400 });
+    if (!student?.studentDepartmentId) {
+      return NextResponse.json({ error: "Student is not assigned to a department." }, { status: 400 });
     }
 
     const availableCourses = await prisma.course.findMany({
       where: {
-        department: {
-          facultyId: student.studentFacultyId
-        }
+        departmentId: student.studentDepartmentId
       },
       include: {
         department: true

@@ -1,13 +1,22 @@
-import { MessageSquare } from "lucide-react";
+import { MessageSquareDashed } from "lucide-react";
 
-export function EmptyFeed() {
+interface EmptyFeedProps {
+  title?: string;
+  description?: string;
+}
+
+export function EmptyFeed({ 
+  title = "You're all caught up for the semester!", 
+  description = "When students submit feedback, it will appear here." 
+}: EmptyFeedProps) {
   return (
-    <div className="bg-white p-12 rounded-[2rem] border border-slate-100 shadow-sm text-center">
-      <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-400">
-        <MessageSquare className="w-8 h-8" />
+    <div className="p-16 rounded-[2rem] border-2 border-dashed border-slate-200/60 bg-slate-50/50 text-center flex flex-col items-center justify-center transition-all duration-500 hover:bg-slate-50">
+      <div className="w-20 h-20 bg-white shadow-[0_8px_30px_rgb(0,0,0,0.06)] rounded-full flex items-center justify-center mb-6 text-teal-400 relative">
+        <div className="absolute inset-0 rounded-full border border-teal-100 animate-[spin_4s_linear_infinite]"></div>
+        <MessageSquareDashed className="w-8 h-8" />
       </div>
-      <h3 className="text-lg font-bold text-slate-700">No evaluations yet</h3>
-      <p className="text-slate-500 mt-2">When students submit feedback for your courses, they will appear here.</p>
+      <h3 className="text-xl font-display font-bold text-slate-800 tracking-tight">{title}</h3>
+      <p className="text-slate-500 mt-2 max-w-sm">{description}</p>
     </div>
   );
 }

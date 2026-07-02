@@ -7,7 +7,11 @@ import { Plus, LayoutTemplate, Settings2, Trash2, Edit3, Target, Save, X, Search
 interface Criterion {
   id?: string;
   name: string;
-  type: "scale" | "qualitative";
+  type: "scale" | "qualitative" | "multiple_choice";
+  options?: string; // JSON string like '["Yes", "No"]'
+  conditionalOnId?: string | null;
+  conditionalOperator?: string | null;
+  conditionalValue?: string | null;
 }
 
 interface Template {
@@ -19,7 +23,7 @@ interface Template {
   status: "ACTIVE" | "DRAFT";
 }
 
-export function EvaluationTemplates() {
+export function EvaluationTemplates({ userRole: propUserRole = "ADMIN" }: { userRole?: string }) {
   const [activeTab, setActiveTab] = useState<"list" | "builder">("list");
   const [templates, setTemplates] = useState<Template[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -33,7 +37,7 @@ export function EvaluationTemplates() {
   });
 
   const [departments, setDepartments] = useState<{id: string, name: string}[]>([]);
-  const [userRole, setUserRole] = useState<string>("ADMIN");
+  const [userRole, setUserRole] = useState<string>(propUserRole);
   const [userDepartmentId, setUserDepartmentId] = useState<string | null>(null);
 
   const fetchTemplates = async () => {
@@ -51,7 +55,11 @@ export function EvaluationTemplates() {
           criteria: t.criteria.map((c: any) => ({
             id: c.id,
             name: c.question,
-            type: c.type === "SCALE" ? "scale" : "qualitative"
+            type: c.type === "SCALE" ? "scale" : c.type === "MULTIPLE_CHOICE" ? "multiple_choice" : "qualitative",
+            options: c.options,
+            conditionalOnId: c.conditionalOnId,
+            conditionalOperator: c.conditionalOperator,
+            conditionalValue: c.conditionalValue
           }))
         }));
         setTemplates(mapped);
@@ -70,6 +78,16 @@ export function EvaluationTemplates() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchTemplates();
   }, []);
+
+  const t = userRole === "OFFICIAL" ? {
+    bg: "bg-emerald-600", bgHover: "hover:bg-emerald-700", text: "text-emerald-600", light: "bg-emerald-50", 
+    border: "border-emerald-200", hoverBorder: "hover:border-emerald-300", hoverBgLight: "hover:bg-emerald-100", hoverBgLight50: "hover:bg-emerald-50/50",
+    focus: "focus:ring-emerald-500/20 focus:border-emerald-500"
+  } : {
+    bg: "bg-emerald-600", bgHover: "hover:bg-emerald-700", text: "text-emerald-600", light: "bg-emerald-50", 
+    border: "border-emerald-200", hoverBorder: "hover:border-emerald-300", hoverBgLight: "hover:bg-emerald-100", hoverBgLight50: "hover:bg-emerald-50/50",
+    focus: "focus:ring-emerald-500/20 focus:border-emerald-500"
+  };
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -149,7 +167,7 @@ export function EvaluationTemplates() {
       <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-2">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
-            <LayoutTemplate className="w-6 h-6 text-blue-600" />
+            <LayoutTemplate className={`w-6 h-6 ${t.text}`} />
             Evaluation Templates
           </h1>
           <p className="text-sm text-slate-500 mt-1">Design and manage academic assessment frameworks and forms.</p>
@@ -167,7 +185,7 @@ export function EvaluationTemplates() {
               });
               setActiveTab("builder");
             }}
-            className="h-10 px-4 rounded-xl bg-blue-600 flex items-center justify-center gap-2 text-white shadow-md hover:bg-blue-700 transition-all font-medium text-sm"
+            className={`h-10 px-4 rounded-xl ${t.bg} flex items-center justify-center gap-2 text-white shadow-md ${t.bgHover} transition-all font-medium text-sm active:scale-95`}
           >
             <Plus className="w-4 h-4" />
             <span>Create New Template</span>
@@ -184,7 +202,7 @@ export function EvaluationTemplates() {
             <button 
               onClick={saveTemplate}
               disabled={!builderState.name || builderState.criteria.length === 0 || isSaving}
-              className="h-10 px-4 rounded-xl bg-blue-600 flex items-center justify-center gap-2 text-white shadow-md hover:bg-blue-700 transition-all font-medium text-sm disabled:opacity-50"
+              className={`h-10 px-4 rounded-xl ${t.bg} flex items-center justify-center gap-2 text-white shadow-md ${t.bgHover} transition-all font-medium text-sm disabled:opacity-50 active:scale-95`}
             >
               {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
               <span>{isSaving ? "Saving..." : "Save Template"}</span>
@@ -197,20 +215,20 @@ export function EvaluationTemplates() {
         <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {isLoading && templates.length === 0 ? (
             <div className="col-span-full flex flex-col items-center justify-center h-64">
-              <Loader2 className="w-8 h-8 text-blue-500 animate-spin mb-4" />
+              <Loader2 className={`w-8 h-8 ${t.text} animate-spin mb-4`} />
               <p className="text-slate-500 font-medium">Loading templates...</p>
             </div>
           ) : (
             <>
               {templates.map((template) => (
-                <div key={template.id} className="bg-white rounded-3xl p-6 shadow-[0_4px_24px_rgba(0,0,0,0.02)] border border-slate-200/60 flex flex-col group hover:border-blue-200 transition-all relative overflow-hidden">
+                <div key={template.id} className={`bg-white rounded-[2rem] p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-200/60 flex flex-col group ${t.hoverBorder} transition-all relative overflow-hidden hover:-translate-y-1 duration-300`}>
                   <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
-                    <button onClick={() => editTemplate(template)} className="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors">
+                    <button onClick={() => editTemplate(template)} className={`p-2 ${t.light} ${t.text} rounded-lg ${t.hoverBgLight} transition-colors`}>
                       <Edit3 className="w-4 h-4" />
                     </button>
                   </div>
                   
-                  <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600 mb-6">
+                  <div className={`w-12 h-12 rounded-2xl ${t.light} flex items-center justify-center ${t.text} mb-6`}>
                     <FileText className="w-6 h-6" />
                   </div>
                   
@@ -257,7 +275,7 @@ export function EvaluationTemplates() {
                   });
                   setActiveTab("builder");
                 }}
-                className="bg-slate-50/50 rounded-3xl p-6 border-2 border-dashed border-slate-200 flex flex-col items-center justify-center text-slate-500 hover:text-blue-600 hover:border-blue-300 hover:bg-blue-50/50 transition-all min-h-[300px]"
+                className={`bg-slate-50/50 rounded-[2rem] p-6 border-2 border-dashed border-slate-200 flex flex-col items-center justify-center text-slate-500 hover:${t.text} ${t.hoverBorder} ${t.hoverBgLight50} transition-all min-h-[300px]`}
               >
                 <div className="w-12 h-12 rounded-full bg-white shadow-sm flex items-center justify-center mb-4">
                   <Plus className="w-6 h-6" />
@@ -280,7 +298,7 @@ export function EvaluationTemplates() {
                 value={builderState.name}
                 onChange={e => setBuilderState({...builderState, name: e.target.value})}
                 placeholder="e.g. End of Term Review"
-                className="w-full h-11 px-4 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all shadow-sm"
+                className={`w-full h-11 px-4 rounded-xl border border-slate-200 text-sm ${t.focus} outline-none transition-all shadow-sm`}
               />
             </div>
             
@@ -289,7 +307,7 @@ export function EvaluationTemplates() {
               <select 
                 value={builderState.departmentId || "ALL"}
                 onChange={e => setBuilderState({...builderState, departmentId: e.target.value})}
-                className="w-full h-11 px-4 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all shadow-sm bg-white"
+                className={`w-full h-11 px-4 rounded-xl border border-slate-200 text-sm ${t.focus} outline-none transition-all shadow-sm bg-white`}
                 disabled={userRole === "OFFICIAL"}
               >
                 {userRole !== "OFFICIAL" && (
@@ -317,7 +335,7 @@ export function EvaluationTemplates() {
               <select 
                 value={builderState.status}
                 onChange={e => setBuilderState({...builderState, status: e.target.value as "ACTIVE" | "DRAFT"})}
-                className="w-full h-11 px-4 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all shadow-sm bg-white"
+                className={`w-full h-11 px-4 rounded-xl border border-slate-200 text-sm ${t.focus} outline-none transition-all shadow-sm bg-white`}
               >
                 <option value="DRAFT">Draft (Not visible)</option>
                 <option value="ACTIVE">Active (Ready to deploy)</option>
@@ -331,7 +349,7 @@ export function EvaluationTemplates() {
               <h3 className="text-lg font-semibold text-slate-900 tracking-tight">Form Criteria</h3>
               <button 
                 onClick={addCriterion}
-                className="h-9 px-4 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 flex items-center justify-center gap-2 transition-colors font-medium text-sm"
+                className={`h-9 px-4 rounded-lg ${t.light} ${t.text} ${t.hoverBgLight} flex items-center justify-center gap-2 transition-colors font-medium text-sm active:scale-95`}
               >
                 <Plus className="w-4 h-4" />
                 Add Criterion
@@ -347,39 +365,102 @@ export function EvaluationTemplates() {
                 </div>
               ) : (
                 builderState.criteria.map((criterion, index) => (
-                  <div key={criterion.id} className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 rounded-2xl border border-slate-100 bg-white shadow-sm hover:shadow-md transition-shadow group relative">
-                    
-                    <div className="w-8 h-8 rounded-full bg-slate-100 text-slate-500 font-bold text-xs flex items-center justify-center shrink-0">
-                      {index + 1}
-                    </div>
-                    
-                    <div className="flex-1 w-full">
-                      <input 
-                        type="text" 
-                        value={criterion.name}
-                        onChange={e => updateCriterion(criterion.id, { name: e.target.value })}
-                        placeholder="e.g. Rate the clarity of the course material"
-                        className="w-full bg-transparent border-none text-slate-800 font-medium focus:outline-none focus:ring-0 p-0 placeholder:text-slate-400"
-                      />
-                    </div>
-                    
-                    <div className="flex items-center gap-3 w-full sm:w-auto mt-2 sm:mt-0 pt-3 sm:pt-0 border-t sm:border-t-0 border-slate-100">
-                      <select 
-                        value={criterion.type}
-                        onChange={e => updateCriterion(criterion.id, { type: e.target.value as "scale" | "qualitative" })}
-                        className="h-9 px-3 rounded-lg border border-slate-200 text-sm text-slate-600 bg-slate-50 focus:ring-2 focus:ring-blue-500/20 outline-none w-full sm:w-auto"
-                      >
-                        <option value="scale">Rating Scale (1-5)</option>
-                        <option value="qualitative">Text Response</option>
-                      </select>
+                  <div key={criterion.id} className="flex flex-col gap-4 p-4 rounded-2xl border border-slate-100 bg-white shadow-sm hover:shadow-md transition-shadow group relative">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                      <div className="w-8 h-8 rounded-full bg-slate-100 text-slate-500 font-bold text-xs flex items-center justify-center shrink-0">
+                        {index + 1}
+                      </div>
                       
-                      <button 
-                        onClick={() => removeCriterion(criterion.id)}
-                        className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors shrink-0 ml-auto sm:ml-0"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      <div className="flex-1 w-full">
+                        <input 
+                          type="text" 
+                          value={criterion.name}
+                          onChange={e => updateCriterion(criterion.id, { name: e.target.value })}
+                          placeholder="e.g. Rate the clarity of the course material"
+                          className="w-full bg-transparent border-none text-slate-800 font-medium focus:outline-none focus:ring-0 p-0 placeholder:text-slate-400"
+                        />
+                      </div>
+                      
+                      <div className="flex items-center gap-3 w-full sm:w-auto mt-2 sm:mt-0 pt-3 sm:pt-0 border-t sm:border-t-0 border-slate-100">
+                        <select 
+                          value={criterion.type}
+                          onChange={e => updateCriterion(criterion.id, { type: e.target.value as "scale" | "qualitative" | "multiple_choice" })}
+                          className="h-9 px-3 rounded-lg border border-slate-200 text-sm text-slate-600 bg-slate-50 focus:ring-2 focus:ring-slate-500/20 outline-none w-full sm:w-auto"
+                        >
+                          <option value="scale">Rating Scale (1-5)</option>
+                          <option value="qualitative">Text Response</option>
+                          <option value="multiple_choice">Multiple Choice</option>
+                        </select>
+                        
+                        <button 
+                          onClick={() => removeCriterion(criterion.id)}
+                          className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors shrink-0 ml-auto sm:ml-0"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
+
+                    {/* Additional Options for Multiple Choice */}
+                    {criterion.type === "multiple_choice" && (
+                      <div className="pl-12">
+                        <label className="block text-xs font-semibold text-slate-500 uppercase mb-2">Options (Comma separated)</label>
+                        <input
+                          type="text"
+                          value={criterion.options ? JSON.parse(criterion.options).join(", ") : ""}
+                          onChange={e => {
+                            const val = e.target.value;
+                            updateCriterion(criterion.id, { options: JSON.stringify(val.split(",").map(s => s.trim()).filter(Boolean)) });
+                          }}
+                          placeholder="Yes, No, Maybe"
+                          className="w-full h-9 px-3 rounded-lg border border-slate-200 text-sm focus:ring-2 focus:ring-slate-500/20 outline-none"
+                        />
+                      </div>
+                    )}
+
+                    {/* Conditional Logic */}
+                    <div className="pl-12 mt-2 p-3 bg-slate-50 rounded-xl border border-slate-200/60">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Settings2 className="w-4 h-4 text-slate-400" />
+                        <span className="text-xs font-semibold text-slate-600 uppercase tracking-wide">Conditional Logic (Optional)</span>
+                      </div>
+                      <div className="flex flex-col sm:flex-row gap-3">
+                        <select
+                          value={criterion.conditionalOnId || ""}
+                          onChange={e => updateCriterion(criterion.id, { conditionalOnId: e.target.value || null })}
+                          className="flex-1 h-9 px-3 rounded-lg border border-slate-200 text-sm text-slate-600 bg-white"
+                        >
+                          <option value="">Always Show</option>
+                          {builderState.criteria.filter(c => c.id !== criterion.id && c.name).map((c, i) => (
+                            <option key={c.id} value={c.id}>Show if Question {builderState.criteria.findIndex(x => x.id === c.id) + 1} ({c.name.substring(0, 20)}...)</option>
+                          ))}
+                        </select>
+                        
+                        {criterion.conditionalOnId && (
+                          <>
+                            <select
+                              value={criterion.conditionalOperator || "EQUALS"}
+                              onChange={e => updateCriterion(criterion.id, { conditionalOperator: e.target.value })}
+                              className="w-32 h-9 px-3 rounded-lg border border-slate-200 text-sm text-slate-600 bg-white"
+                            >
+                              <option value="EQUALS">Equals</option>
+                              <option value="NOT_EQUALS">Not Equals</option>
+                              <option value="GREATER_THAN">Greater Than</option>
+                              <option value="LESS_THAN">Less Than</option>
+                            </select>
+                            
+                            <input
+                              type="text"
+                              value={criterion.conditionalValue || ""}
+                              onChange={e => updateCriterion(criterion.id, { conditionalValue: e.target.value })}
+                              placeholder="Value"
+                              className="flex-1 h-9 px-3 rounded-lg border border-slate-200 text-sm bg-white"
+                            />
+                          </>
+                        )}
+                      </div>
+                    </div>
+
                   </div>
                 ))
               )}

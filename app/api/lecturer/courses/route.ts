@@ -1,14 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { verifyToken } from "@/lib/auth";
 
 export async function GET(req: NextRequest) {
   try {
-    const userId = req.headers.get("x-user-id");
-    const role = req.headers.get("x-user-role");
-
-    if (!userId || role !== "LECTURER") {
+    const sessionToken = req.cookies.get('uniqualis_session')?.value;
+    if (!sessionToken) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const payload = await verifyToken(sessionToken);
+    if (!payload || payload.role !== "LECTURER") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+    const userId = payload.sub as string;
+    const role = payload.role as string;
+
 
     const systemSetting = await prisma.systemSetting.findFirst();
     const now = new Date();

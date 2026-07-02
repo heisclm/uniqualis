@@ -70,18 +70,23 @@ export async function GET(req: NextRequest) {
       take: 5
     });
 
-    // We can also fetch the current active term context globally or derive it
-    const activeTerm = {
-      academicYear: "2026-2027",
-      semester: "Fall"
-    };
+    const systemSetting = await prisma.systemSetting.findFirst();
+    const activeTerm = systemSetting?.currentTermName || "Current Term";
+    let isEvalWindowActive = false;
+    if (systemSetting?.evalWindowStartDate && systemSetting?.evalWindowEndDate) {
+      const now = new Date();
+      if (now >= new Date(systemSetting.evalWindowStartDate) && now <= new Date(systemSetting.evalWindowEndDate)) {
+        isEvalWindowActive = true;
+      }
+    }
 
     return NextResponse.json({
       averageRating,
       totalEvaluations,
       pendingResponses,
       recentFeedback,
-      activeTerm
+      activeTerm,
+      isEvalWindowActive
     });
   } catch (error) {
     console.error("Lecturer dashboard GET Error:", error);

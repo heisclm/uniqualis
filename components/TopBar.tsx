@@ -100,47 +100,59 @@ export function TopBar({
     }
   };
 
+  const getProfileGradient = () => {
+    switch(userRole) {
+      case 'STUDENT': return 'from-emerald-600 to-teal-600 shadow-emerald-200';
+      case 'LECTURER': return 'from-teal-500 to-emerald-600 shadow-teal-200';
+      case 'OFFICIAL': return 'from-emerald-600 to-teal-700 shadow-emerald-200';
+      case 'ADMIN':
+      default: return 'from-emerald-600 to-indigo-600 shadow-emerald-200';
+    }
+  };
+
+  const getThemeColor = () => {
+    switch(userRole) {
+      case 'STUDENT': return { border: 'border-emerald-500/50', ring: 'focus:ring-emerald-500/10', text: 'text-emerald-600', hoverText: 'hover:text-emerald-600', hoverTextHover: 'hover:text-emerald-700', bg: 'bg-emerald-500', shadow: 'shadow-[0_0_8px_rgba(16,185,129,0.6)]' };
+      case 'LECTURER': return { border: 'border-teal-500/50', ring: 'focus:ring-teal-500/10', text: 'text-teal-600', hoverText: 'hover:text-teal-600', hoverTextHover: 'hover:text-teal-700', bg: 'bg-teal-500', shadow: 'shadow-[0_0_8px_rgba(20,184,166,0.6)]' };
+      case 'OFFICIAL': return { border: 'border-emerald-500/50', ring: 'focus:ring-emerald-500/10', text: 'text-emerald-600', hoverText: 'hover:text-emerald-600', hoverTextHover: 'hover:text-emerald-700', bg: 'bg-emerald-600', shadow: 'shadow-[0_0_8px_rgba(5,150,105,0.6)]' };
+      case 'ADMIN':
+      default: return { border: 'border-emerald-500/50', ring: 'focus:ring-emerald-500/10', text: 'text-emerald-600', hoverText: 'hover:text-emerald-600', hoverTextHover: 'hover:text-emerald-700', bg: 'bg-emerald-500', shadow: 'shadow-[0_0_8px_rgba(16,185,129,0.6)]' };
+    }
+  };
+
+  const theme = getThemeColor();
+
   return (
-    <header className="flex items-center justify-between px-4 md:px-8 py-4 bg-[#F4F7FE]/70 backdrop-blur-md border-b border-slate-200/50 sticky top-0 z-30">
+    <header className="flex items-center justify-between px-4 md:px-6 lg:px-8 py-4 bg-white/70 backdrop-blur-xl border-b border-white/50 shadow-[0_4px_30px_rgb(0,0,0,0.02)] sticky top-0 z-30 gap-3 sm:gap-4 w-full transition-all duration-300">
       
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2 md:gap-4 min-w-0 flex-1">
         {/* Mobile Menu Button */}
         <button 
           onClick={toggleSidebar}
-          className="lg:hidden w-10 h-10 rounded-full bg-white/60 backdrop-blur-md flex items-center justify-center text-slate-500 shadow-[0_2px_10px_rgba(0,0,0,0.04)] border border-slate-100/50 hover:bg-white/90 transition-colors"
+          className="lg:hidden shrink-0 w-10 h-10 rounded-full bg-white/60 backdrop-blur-md flex items-center justify-center text-slate-500 shadow-[0_2px_10px_rgba(0,0,0,0.04)] border border-slate-100/50 hover:bg-white/90 transition-colors"
         >
           <Menu className="w-5 h-5" />
         </button>
 
         {/* Page Title / Breadcrumb (Hidden on very small screens) */}
-        <div className="hidden sm:flex items-center gap-2 text-sm font-medium">
-          <span className="text-slate-400">Workspace</span>
-          <ChevronRight className="w-4 h-4 text-slate-300" />
-          <span className="text-slate-800 font-semibold tracking-tight capitalize">{getPageTitle()}</span>
+        <div className="hidden sm:flex items-center gap-1.5 sm:gap-2 text-sm font-medium whitespace-nowrap min-w-0 overflow-hidden text-ellipsis">
+          <span className="text-slate-400 shrink-0 hidden md:inline">Workspace</span>
+          <ChevronRight className="w-4 h-4 text-slate-300 shrink-0 hidden md:inline" />
+          <span className="text-slate-800 font-semibold tracking-tight capitalize truncate max-w-[140px] md:max-w-[200px] lg:max-w-none">{getPageTitle()}</span>
         </div>
       </div>
 
       {/* Action Buttons */}
-      <div className="flex items-center gap-2 sm:gap-4 ml-auto">
-        {/* Search Input (Premium feel) */}
-        <div className="hidden md:flex items-center relative mr-2">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3" />
-          <input 
-            type="text" 
-            placeholder="Search anywhere..." 
-            className="w-64 h-10 pl-10 pr-4 rounded-full bg-white/50 backdrop-blur-sm border border-slate-200/50 text-sm focus:outline-none focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/10 transition-all shadow-sm"
-          />
-        </div>
-
-        <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 md:gap-3 lg:gap-4 shrink-0">
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           <div className="relative" ref={notificationRef}>
             <button 
               onClick={() => setIsNotificationOpen(!isNotificationOpen)}
-              className="w-10 h-10 rounded-full bg-white/60 backdrop-blur-md flex items-center justify-center text-slate-500 shadow-sm border border-slate-200/50 hover:bg-white/80 hover:text-indigo-600 transition-colors relative"
+              className={`w-10 h-10 rounded-full bg-white/60 backdrop-blur-md flex items-center justify-center text-slate-500 shadow-sm border border-slate-200/50 hover:bg-white/80 ${theme.hoverText} transition-colors relative`}
             >
               <Bell className="w-4 h-4" />
               {notifications.length > 0 && (
-                <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-indigo-500 rounded-full border border-white animate-pulse"></span>
+                <span className={`absolute top-2.5 right-2.5 w-2 h-2 ${theme.bg} rounded-full border border-white animate-pulse`}></span>
               )}
             </button>
             
@@ -150,7 +162,7 @@ export function TopBar({
                 <div className="p-4 border-b border-slate-200/50 flex items-center justify-between bg-white/50">
                   <h3 className="font-semibold text-slate-800">Notifications</h3>
                     {notifications.length > 0 && (
-                      <button onClick={() => markAsRead()} className="text-xs text-indigo-600 hover:text-indigo-700 font-semibold transition-colors">
+                      <button onClick={() => markAsRead()} className={`text-xs ${theme.text} ${theme.hoverTextHover} font-semibold transition-colors`}>
                         Mark all as read
                       </button>
                     )}
@@ -160,7 +172,7 @@ export function TopBar({
                       <div className="divide-y divide-slate-100/50">
                         {notifications.map(notif => (
                           <div key={notif.id} className="p-4 hover:bg-slate-50/80 transition-colors flex gap-3 group items-start cursor-pointer" onClick={() => markAsRead(notif.id)}>
-                            <div className="mt-1 w-2 h-2 rounded-full bg-indigo-500 shrink-0 shadow-[0_0_8px_rgba(99,102,241,0.6)]"></div>
+                            <div className={`mt-1 w-2 h-2 rounded-full ${theme.bg} shrink-0 ${theme.shadow}`}></div>
                             <div className="flex-1">
                               <p className="text-sm font-medium text-slate-800">{notif.title}</p>
                               <p className="text-xs text-slate-500 mt-1 line-clamp-2 leading-relaxed">{notif.message}</p>
@@ -191,9 +203,6 @@ export function TopBar({
                 </div>
             )}
           </div>
-          <button className="w-10 h-10 rounded-full bg-white/60 backdrop-blur-md md:hidden flex items-center justify-center text-slate-500 shadow-sm border border-slate-200/50 hover:bg-white/80 transition-colors">
-            <Search className="w-4 h-4" />
-          </button>
         </div>
         
         <div className="h-6 w-px bg-slate-200/50 hidden sm:block mx-1"></div>
@@ -203,7 +212,7 @@ export function TopBar({
             // eslint-disable-next-line @next/next/no-img-element
             <img src={user.profileImageUrl} alt="Profile" className="w-7 h-7 rounded-full object-cover border border-white shadow-sm" />
           ) : user ? (
-            <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center text-xs font-bold text-white tracking-wider shadow-sm shadow-indigo-200">
+            <div className={`w-7 h-7 rounded-full bg-gradient-to-tr ${getProfileGradient()} flex items-center justify-center text-xs font-bold text-white tracking-wider shadow-sm`}>
               {user.firstName.charAt(0)}{user.lastName.charAt(0)}
             </div>
           ) : (

@@ -52,7 +52,7 @@ export function LecturerCourses() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-8">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-slate-800 tracking-tight flex items-center gap-3">
-            <BookOpen className="w-8 h-8 text-indigo-600" />
+            <BookOpen className="w-8 h-8 text-teal-600" />
             Structural Teaching Directory
           </h1>
           <p className="text-sm text-slate-500 mt-2">Manage your academic rosters and monitor live evaluation engagement metrics.</p>
@@ -64,7 +64,7 @@ export function LecturerCourses() {
             onClick={() => setActiveTerm('current')}
             className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-all ${
               activeTerm === 'current' 
-                ? 'bg-white text-indigo-700 shadow-sm border border-indigo-100' 
+                ? 'bg-white text-teal-700 shadow-sm border border-teal-100' 
                 : 'text-slate-600 hover:text-slate-800'
             }`}
           >
@@ -75,7 +75,7 @@ export function LecturerCourses() {
             onClick={() => setActiveTerm('historical')}
             className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-all ${
               activeTerm === 'historical' 
-                ? 'bg-white text-indigo-700 shadow-sm border border-indigo-100' 
+                ? 'bg-white text-teal-700 shadow-sm border border-teal-100' 
                 : 'text-slate-600 hover:text-slate-800'
             }`}
           >
@@ -87,7 +87,7 @@ export function LecturerCourses() {
 
       {isLoading ? (
         <div className="flex items-center justify-center h-[40vh] w-full">
-          <Loader2 className="w-8 h-8 text-indigo-500 animate-spin" />
+          <Loader2 className="w-8 h-8 text-teal-500 animate-spin" />
         </div>
       ) : (
         <div className="space-y-10">
@@ -98,11 +98,11 @@ export function LecturerCourses() {
               return (
                 <div key={course.id} className="group relative bg-white rounded-[2rem] p-7 shadow-sm border border-slate-200/50 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col h-full overflow-hidden">
                   {/* Decorative Background Blob */}
-                  <div className="absolute -top-24 -right-24 w-48 h-48 bg-gradient-to-br from-indigo-50 to-blue-50 rounded-full blur-3xl opacity-50 group-hover:opacity-100 transition-opacity"></div>
+                  <div className="absolute -top-24 -right-24 w-48 h-48 bg-gradient-to-br from-teal-50 to-emerald-50 rounded-full blur-3xl opacity-50 group-hover:opacity-100 transition-opacity"></div>
                   
                   <div className="relative z-10 mb-6">
                     <div className="flex justify-between items-center mb-5">
-                      <div className={`flex items-center justify-center w-12 h-12 rounded-2xl ${activeTerm === 'current' ? 'bg-indigo-50 text-indigo-600' : 'bg-slate-50 text-slate-500'} shadow-sm border border-slate-100`}>
+                      <div className={`flex items-center justify-center w-12 h-12 rounded-2xl ${activeTerm === 'current' ? 'bg-teal-50 text-teal-600' : 'bg-slate-50 text-slate-500'} shadow-sm border border-slate-100`}>
                         <BookOpen className="w-5 h-5" />
                       </div>
                       <div className="flex flex-col items-end gap-1.5">
@@ -112,7 +112,7 @@ export function LecturerCourses() {
                         <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-bold rounded-lg border uppercase tracking-wider ${
                           course.status === 'ACTIVE' ? 'bg-emerald-50 text-emerald-700 border-emerald-100/50' : 
                           course.status === 'Archived' ? 'bg-slate-50 text-slate-600 border-slate-200/50' : 
-                          'bg-indigo-50 text-indigo-700 border-indigo-100/50'
+                          'bg-teal-50 text-teal-700 border-teal-100/50'
                         }`}>
                           {course.status === 'ACTIVE' && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>}
                           {course.status}
@@ -121,8 +121,8 @@ export function LecturerCourses() {
                     </div>
                     
                     <div>
-                      <span className="text-xs font-bold text-indigo-600/80 tracking-widest block mb-1.5">{course.code}</span>
-                      <h3 className="text-2xl font-extrabold text-slate-900 leading-tight tracking-tight line-clamp-2 group-hover:text-indigo-600 transition-colors">{course.title}</h3>
+                      <span className="text-xs font-bold text-teal-600/80 tracking-widest block mb-1.5">{course.code}</span>
+                      <h3 className="text-2xl font-extrabold text-slate-900 leading-tight tracking-tight line-clamp-2 group-hover:text-teal-600 transition-colors">{course.title}</h3>
                     </div>
                   </div>
                   
@@ -141,7 +141,7 @@ export function LecturerCourses() {
                         <div 
                           className={`absolute top-0 left-0 h-full rounded-full transition-all duration-1000 ease-out ${
                             completionRate >= 80 ? 'bg-gradient-to-r from-emerald-400 to-emerald-500' : 
-                            completionRate >= 40 ? 'bg-gradient-to-r from-indigo-400 to-indigo-500' : 
+                            completionRate >= 40 ? 'bg-gradient-to-r from-teal-400 to-teal-500' : 
                             completionRate > 0 ? 'bg-gradient-to-r from-amber-400 to-amber-500' : 'bg-slate-300'
                           }`}
                           style={{ width: `${completionRate}%` }}
@@ -150,7 +150,7 @@ export function LecturerCourses() {
                     </div>
                   </div>
 
-                  <button className="relative z-10 mt-6 w-full py-3.5 bg-slate-50 hover:bg-indigo-50 text-slate-700 hover:text-indigo-700 text-sm font-bold rounded-xl transition-all duration-300 flex items-center justify-center gap-2 border border-slate-200/60 hover:border-indigo-100">
+                  <button className="relative z-10 mt-6 w-full py-3.5 bg-slate-50 hover:bg-teal-50 text-slate-700 hover:text-teal-700 text-sm font-bold rounded-xl transition-all duration-300 flex items-center justify-center gap-2 border border-slate-200/60 hover:border-teal-100">
                     <BarChart3 className="w-4 h-4" />
                     <span>Drill Down Metrics</span>
                     <ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all duration-300 absolute right-6" />
@@ -173,15 +173,15 @@ export function LecturerCourses() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Custom Modules Tool */}
                 <div className="bg-white rounded-3xl p-6 md:p-8 shadow-[0_4px_24px_rgba(0,0,0,0.02)] border border-slate-200/60 flex items-start gap-5">
-                  <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center shrink-0">
-                    <Layers className="w-6 h-6 text-blue-600" />
+                  <div className="w-12 h-12 rounded-2xl bg-teal-50 border border-teal-100 flex items-center justify-center shrink-0">
+                    <Layers className="w-6 h-6 text-teal-600" />
                   </div>
                   <div>
                     <h3 className="text-lg font-bold text-slate-800 mb-2">Custom Evaluation Modules</h3>
                     <p className="text-sm text-slate-600 leading-relaxed mb-4">
                       Add up to 2 custom course-specific questions to the core university evaluation. Perfect for gathering feedback on new teaching methods or guest speakers.
                     </p>
-                    <button className="text-sm font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1 transition-colors">
+                    <button className="text-sm font-semibold text-teal-600 hover:text-teal-700 flex items-center gap-1 transition-colors">
                       Configure Modules <ArrowRight className="w-4 h-4" />
                     </button>
                   </div>

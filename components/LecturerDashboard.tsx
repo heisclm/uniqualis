@@ -29,7 +29,8 @@ export function LecturerDashboard() {
     totalEvaluations: 0, 
     pendingResponses: 0, 
     recentFeedback: [] as FeedbackItem[],
-    activeTerm: null as TermContext | null
+    activeTerm: null as string | null,
+    isEvalWindowActive: false
   });
 
   useEffect(() => {
@@ -43,7 +44,8 @@ export function LecturerDashboard() {
             totalEvaluations: json.totalEvaluations,
             pendingResponses: json.pendingResponses,
             recentFeedback: json.recentFeedback || [],
-            activeTerm: json.activeTerm
+            activeTerm: json.activeTerm,
+            isEvalWindowActive: json.isEvalWindowActive
           });
         }
       } catch (err) {
@@ -58,12 +60,12 @@ export function LecturerDashboard() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-[60vh] w-full">
-        <Loader2 className="w-8 h-8 text-indigo-500 animate-spin" />
+        <Loader2 className="w-8 h-8 text-teal-500 animate-spin" />
       </div>
     );
   }
 
-  const { averageRating, totalEvaluations: totalStudents, pendingResponses: pendingEvals, recentFeedback, activeTerm } = data;
+  const { averageRating, totalEvaluations: totalStudents, pendingResponses: pendingEvals, recentFeedback, activeTerm, isEvalWindowActive } = data;
 
   return (
     <div className="p-4 md:p-8 max-w-[1400px] mx-auto space-y-6 md:space-y-8 animate-in fade-in duration-700">
@@ -76,32 +78,32 @@ export function LecturerDashboard() {
         {activeTerm && (
           <div className="bg-white border border-slate-200 px-4 py-2 rounded-xl shadow-sm">
             <span className="text-xs text-slate-500 block uppercase tracking-wider font-semibold">Active Context</span>
-            <span className="text-sm text-slate-800 font-bold">{activeTerm.semester} {activeTerm.academicYear}</span>
+            <span className="text-sm text-slate-800 font-bold">{activeTerm}</span>
           </div>
         )}
       </div>
 
       {/* Action Required Alerts */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {data.activeTerm && (
+        {isEvalWindowActive && activeTerm && (
           <div className="bg-amber-50 rounded-2xl p-4 md:p-5 border border-amber-200/60 flex items-start gap-4">
             <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
               <Clock className="w-5 h-5 text-amber-600" />
             </div>
             <div>
               <h3 className="text-sm font-bold text-amber-900">Evaluation Window Active</h3>
-              <p className="text-sm text-amber-700 mt-0.5">The evaluation window for <span className="font-semibold">{data.activeTerm.semester} {data.activeTerm.academicYear}</span> is currently active. Remind your students to participate.</p>
+              <p className="text-sm text-amber-700 mt-0.5">The evaluation window for <span className="font-semibold">{activeTerm}</span> is currently active. Remind your students to participate.</p>
             </div>
           </div>
         )}
 
-        <div className="bg-indigo-50 rounded-2xl p-4 md:p-5 border border-indigo-200/60 flex items-start gap-4">
-          <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center shrink-0">
-            <AlertCircle className="w-5 h-5 text-indigo-600" />
+        <div className="bg-teal-50 rounded-2xl p-4 md:p-5 border border-teal-200/60 flex items-start gap-4">
+          <div className="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center shrink-0">
+            <AlertCircle className="w-5 h-5 text-teal-600" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-indigo-900">Pending Feedback Responses</h3>
-            <p className="text-sm text-indigo-700 mt-0.5">You have <span className="font-semibold">{pendingEvals} unread</span> qualitative feedback comments waiting for your formal response.</p>
+            <h3 className="text-sm font-bold text-teal-900">Pending Feedback Responses</h3>
+            <p className="text-sm text-teal-700 mt-0.5">You have <span className="font-semibold">{pendingEvals} unread</span> qualitative feedback comments waiting for your formal response.</p>
           </div>
         </div>
       </div>
@@ -158,7 +160,7 @@ export function LecturerDashboard() {
                     </div>
                   </div>
                   {feedback.isFlagged && (
-                    <button className="text-sm text-indigo-600 font-semibold hover:text-indigo-700 flex items-center whitespace-nowrap">
+                    <button className="text-sm text-teal-600 font-semibold hover:text-teal-700 flex items-center whitespace-nowrap active:scale-95 transition-transform">
                       Reply
                       <ChevronRight className="w-4 h-4 ml-1" />
                     </button>

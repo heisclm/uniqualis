@@ -24,7 +24,7 @@ export default function Error({
             // Attempt to recover by trying to re-render the segment
             () => reset()
           }
-          className="mt-6 px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-medium"
+          className="mt-6 px-6 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition-colors font-medium"
         >
           Try again
         </button>

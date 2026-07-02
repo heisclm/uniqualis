@@ -20,11 +20,11 @@ export async function GET(req: NextRequest) {
     let template = null;
 
     if (departmentId) {
-      // Try to find a published template for this department
+      // Try to find an active template for this department
       template = await prisma.evaluationTemplate.findFirst({
         where: {
           departmentId: departmentId,
-          status: "PUBLISHED"
+          status: "ACTIVE"
         },
         include: {
           criteria: true
@@ -32,12 +32,12 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    // Fallback to institution-wide published template
+    // Fallback to institution-wide active template
     if (!template) {
       template = await prisma.evaluationTemplate.findFirst({
         where: {
           departmentId: null,
-          status: "PUBLISHED"
+          status: "ACTIVE"
         },
         include: {
           criteria: true

@@ -4,66 +4,58 @@ import bcrypt from 'bcryptjs';
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('Seeding initial data for testing...');
+  console.log('--- UniQualis Production Seeding ---');
+  
+  // 1. Root Admin Account
+  const adminEmail = 'admin@uniqualis.edu';
+  const adminPassword = 'SuperSecretAdminPassword123!';
+  
+  const existingAdmin = await prisma.user.findUnique({ where: { email: adminEmail } });
+  
+  if (!existingAdmin) {
+    const salt = await bcrypt.genSalt(10);
+    const passwordHash = await bcrypt.hash(adminPassword, salt);
+    
+    await prisma.user.create({
+      data: {
+        firstName: 'System',
+        lastName: 'Admin',
+        email: adminEmail,
+        passwordHash,
+        role: 'ADMIN',
+      }
+    });
+    console.log('✅ Root Admin account created.');
+    console.log(`   Email: ${adminEmail}`);
+    console.log(`   Password: ${adminPassword}`);
+  } else {
+    console.log('Root Admin account already exists. Skipping.');
+  }
 
-  const salt = await bcrypt.genSalt(10);
-  const defaultPassword = await bcrypt.hash('password123', salt);
+  // 2. Default System Configuration
+  const existingConfig = await prisma.systemSetting.findFirst();
+  
+  if (!existingConfig) {
+    const now = new Date();
+    const endDate = new Date();
+    endDate.setMonth(now.getMonth() + 1); // default window is 1 month
 
-  // Create Faculty
-  const faculty = await prisma.faculty.upsert({
-    where: { id: 'fac-1' },
-    update: {},
-    create: {
-      id: 'fac-1',
-      name: 'Faculty of Engineering',
-    },
-  });
+    await prisma.systemSetting.create({
+      data: {
+        currentTermName: 'Fall 2026-2027',
+        defaultDepartmentView: 'All Departments',
+        evalWindowStartDate: now,
+        evalWindowEndDate: endDate,
+        autoClosePortal: true,
+      }
+    });
+    console.log('✅ Default System Configuration seeded.');
+  } else {
+    console.log('System Configuration already exists. Skipping.');
+  }
 
-  // Create Department
-  const department = await prisma.department.upsert({
-    where: { id: 'dep-1' },
-    update: {},
-    create: {
-      id: 'dep-1',
-      name: 'Computer Science',
-      facultyId: faculty.id,
-    },
-  });
-
-  // Create Official (Dean/HOD)
-  const official = await prisma.user.upsert({
-    where: { email: 'official@uniqualis.edu' },
-    update: {},
-    create: {
-      email: 'official@uniqualis.edu',
-      passwordHash: defaultPassword,
-      firstName: 'Dr. Jane',
-      lastName: 'Doe (Dean)',
-      role: 'OFFICIAL',
-      officialFacultyId: faculty.id,
-    },
-  });
-
-  // Create Lecturer
-  const lecturer = await prisma.user.upsert({
-    where: { email: 'lecturer@uniqualis.edu' },
-    update: {},
-    create: {
-      email: 'lecturer@uniqualis.edu',
-      passwordHash: defaultPassword,
-      firstName: 'Prof. Alan',
-      lastName: 'Turing',
-      role: 'LECTURER',
-      lecturerDepartmentId: department.id,
-    },
-  });
-
-  console.log('✅ Seeding complete!');
-  console.log('Login credentials:');
-  console.log('- Admin: admin@uniqualis.edu / SuperSecretAdminPassword123!');
-  console.log('- Official: official@uniqualis.edu / password123');
-  console.log('- Lecturer: lecturer@uniqualis.edu / password123');
-  console.log(`- Demo Department ID (for Student signup): ${department.id}`);
+  console.log('--- Seeding Complete ---');
+  console.log('Ready for the Admin to login and configure Faculties, Departments, and Staff.');
 }
 
 main()

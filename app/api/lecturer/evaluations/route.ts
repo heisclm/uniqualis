@@ -28,6 +28,9 @@ export async function GET(req: NextRequest) {
       },
       include: {
         course: true,
+        responses: {
+          include: { criterion: true }
+        },
         lecturerResponse: {
           include: {
             attachments: true
@@ -116,14 +119,32 @@ export async function GET(req: NextRequest) {
     const allRatings = evaluations.map(e => e.ratingQuantitative).filter(r => r && r > 0);
     const avg = allRatings.length > 0 ? allRatings.reduce((a,b) => a+b, 0) / allRatings.length : 0;
     
+    // Compute Criteria Breakdown Dynamically
+    const criteriaScoreMap: Record<string, { total: number; count: number }> = {};
+    evaluations.forEach(ev => {
+      ev.responses.forEach(resp => {
+        if (resp.criterion && resp.criterion.type === 'SCALE' && resp.score) {
+          const subject = resp.criterion.question;
+          if (!criteriaScoreMap[subject]) {
+            criteriaScoreMap[subject] = { total: 0, count: 0 };
+          }
+          criteriaScoreMap[subject].total += resp.score;
+          criteriaScoreMap[subject].count += 1;
+        }
+      });
+    });
+
     let criteriaData: {subject: string, A: number, fullMark: number}[] = [];
-    if (avg > 0) {
+    if (Object.keys(criteriaScoreMap).length > 0) {
+      criteriaData = Object.keys(criteriaScoreMap).map(subject => ({
+        subject: subject.length > 20 ? subject.substring(0, 20) + '...' : subject,
+        A: Number((criteriaScoreMap[subject].total / criteriaScoreMap[subject].count).toFixed(1)),
+        fullMark: 5
+      }));
+    } else if (avg > 0) {
+      // Fallback if no specific criteria responses are found but there is an average
       criteriaData = [
-        { subject: 'Clarity', A: Number(Math.min(5, avg + 0.2).toFixed(1)), fullMark: 5 },
-        { subject: 'Punctuality', A: Number(Math.min(5, avg + 0.4).toFixed(1)), fullMark: 5 },
-        { subject: 'Engagement', A: Number(Math.max(1, avg - 0.3).toFixed(1)), fullMark: 5 },
-        { subject: 'Fairness', A: Number(avg.toFixed(1)), fullMark: 5 },
-        { subject: 'Availability', A: Number(Math.max(1, avg - 0.1).toFixed(1)), fullMark: 5 },
+        { subject: 'Overall', A: Number(avg.toFixed(1)), fullMark: 5 }
       ];
     }
     

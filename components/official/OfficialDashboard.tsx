@@ -16,7 +16,8 @@ export function OfficialDashboard() {
     try {
       const response = await fetch('/api/official/evaluations');
       if (!response.ok) {
-        throw new Error('Failed to fetch department evaluations');
+        const errorData = await response.json().catch(() => null);
+        throw new Error(errorData?.error || 'Failed to fetch department evaluations');
       }
       const data = await response.json();
       setEvaluations(data.evaluations || []);
@@ -51,7 +52,7 @@ export function OfficialDashboard() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <Loader2 className="w-8 h-8 text-indigo-500 animate-spin" />
+        <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
       </div>
     );
   }
@@ -79,48 +80,52 @@ export function OfficialDashboard() {
       
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-slate-800 tracking-tight flex items-center gap-3">
-            <ShieldCheck className="w-8 h-8 text-indigo-600" />
+          <h1 className="text-3xl md:text-4xl font-display font-bold text-slate-800 tracking-tight flex items-center gap-3">
+            <ShieldCheck className="w-9 h-9 text-emerald-600" />
             Department Oversight
           </h1>
           <p className="text-slate-500 mt-2">Monitor evaluations and submit administrative notes.</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-6">
-        <div className="bg-white p-6 rounded-[1.5rem] border border-slate-100 shadow-sm flex items-center justify-between">
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+        <div className="col-span-1 md:col-span-3 bg-white p-6 rounded-[2rem] border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col justify-between hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group">
+          <div className="absolute -right-4 -top-4 w-24 h-24 bg-emerald-50 rounded-full blur-2xl group-hover:bg-emerald-100 transition-colors"></div>
           <div>
-            <p className="text-sm font-medium text-slate-500 mb-1 flex items-center gap-2"><BookOpen className="w-4 h-4 text-slate-400" /> Total Evaluations</p>
-            <h3 className="text-2xl font-bold text-slate-800">{evaluations.length}</h3>
+            <p className="text-sm font-semibold text-slate-500 mb-2 flex items-center gap-2 uppercase tracking-wider"><BookOpen className="w-4 h-4 text-emerald-400" /> Total Evaluations</p>
+            <h3 className="text-5xl font-display font-bold text-slate-800 tracking-tight">{evaluations.length}</h3>
           </div>
         </div>
         
-        <div className="bg-white p-6 rounded-[1.5rem] border border-red-50 shadow-sm flex items-center justify-between">
+        <div className="col-span-1 md:col-span-3 bg-white p-6 rounded-[2rem] border border-red-50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col justify-between hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group">
+          <div className="absolute -right-4 -top-4 w-24 h-24 bg-red-50 rounded-full blur-2xl group-hover:bg-red-100 transition-colors"></div>
           <div>
-            <p className="text-sm font-medium text-red-500 mb-1 flex items-center gap-2">
+            <p className="text-sm font-semibold text-red-500 mb-2 flex items-center gap-2 uppercase tracking-wider">
               <AlertTriangle className="w-4 h-4" /> Flagged for Review
             </p>
-            <h3 className="text-2xl font-bold text-red-700">{flaggedCount}</h3>
+            <h3 className="text-5xl font-display font-bold text-red-700 tracking-tight">{flaggedCount}</h3>
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-[1.5rem] border border-amber-50 shadow-sm flex items-center justify-between">
+        <div className="col-span-1 md:col-span-3 bg-white p-6 rounded-[2rem] border border-amber-50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col justify-between hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group">
+          <div className="absolute -right-4 -top-4 w-24 h-24 bg-amber-50 rounded-full blur-2xl group-hover:bg-amber-100 transition-colors"></div>
           <div>
-            <p className="text-sm font-medium text-amber-600 mb-1 flex items-center gap-2">
+            <p className="text-sm font-semibold text-amber-600 mb-2 flex items-center gap-2 uppercase tracking-wider">
               <TrendingDown className="w-4 h-4" /> At-Risk Courses
             </p>
-            <h3 className="text-2xl font-bold text-amber-700">{stats.atRiskCoursesCount}</h3>
-            <p className="text-xs text-amber-500 mt-1">Avg below 3.0 threshold</p>
+            <h3 className="text-5xl font-display font-bold text-amber-700 tracking-tight">{stats.atRiskCoursesCount}</h3>
+            <p className="text-xs font-medium text-amber-500/80 mt-2">Avg below 3.0 threshold</p>
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-[1.5rem] border border-indigo-50 shadow-sm flex items-center justify-between">
+        <div className="col-span-1 md:col-span-3 bg-white p-6 rounded-[2rem] border border-emerald-50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col justify-between hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group">
+          <div className="absolute -right-4 -top-4 w-24 h-24 bg-emerald-50 rounded-full blur-2xl group-hover:bg-emerald-100 transition-colors"></div>
           <div>
-            <p className="text-sm font-medium text-indigo-500 mb-1 flex items-center gap-2">
+            <p className="text-sm font-semibold text-emerald-500 mb-2 flex items-center gap-2 uppercase tracking-wider">
               <Users className="w-4 h-4" /> Pending QA Plans
             </p>
-            <h3 className="text-2xl font-bold text-indigo-700">{stats.pendingQAPlansCount}</h3>
-            <p className="text-xs text-indigo-400 mt-1">Awaiting your approval</p>
+            <h3 className="text-5xl font-display font-bold text-emerald-700 tracking-tight">{stats.pendingQAPlansCount}</h3>
+            <p className="text-xs font-medium text-emerald-400/80 mt-2">Awaiting your approval</p>
           </div>
         </div>
       </div>
@@ -128,9 +133,9 @@ export function OfficialDashboard() {
       <div className="bg-white rounded-3xl p-2 shadow-sm border border-slate-100 mb-8 inline-flex flex-wrap gap-1">
         <button
           onClick={() => setFilter('all')}
-          className={`flex items-center gap-2 px-6 py-3 rounded-2xl text-sm font-bold transition-all ${
+          className={`flex items-center gap-2 px-6 py-3 rounded-2xl text-sm font-bold transition-all active:scale-95 ${
             filter === 'all' 
-              ? 'bg-indigo-50 text-indigo-700 shadow-sm' 
+              ? 'bg-emerald-50 text-emerald-700 shadow-sm' 
               : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'
           }`}
         >
@@ -138,7 +143,7 @@ export function OfficialDashboard() {
         </button>
         <button
           onClick={() => setFilter('flagged')}
-          className={`flex items-center gap-2 px-6 py-3 rounded-2xl text-sm font-bold transition-all ${
+          className={`flex items-center gap-2 px-6 py-3 rounded-2xl text-sm font-bold transition-all active:scale-95 ${
             filter === 'flagged' 
               ? 'bg-red-50 text-red-700 shadow-sm' 
               : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'

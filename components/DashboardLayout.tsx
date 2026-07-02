@@ -48,12 +48,45 @@ export function DashboardLayout({ userRole }: DashboardLayoutProps) {
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
+  const getBackgroundBlobs = () => {
+    switch(userRole) {
+      case 'STUDENT':
+        return (
+          <>
+            <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-emerald-400/20 blur-[120px] pointer-events-none"></div>
+            <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full bg-teal-400/20 blur-[120px] pointer-events-none"></div>
+          </>
+        );
+      case 'LECTURER':
+        return (
+          <>
+            <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-teal-400/20 blur-[120px] pointer-events-none"></div>
+            <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full bg-cyan-400/20 blur-[120px] pointer-events-none"></div>
+          </>
+        );
+      case 'OFFICIAL':
+        return (
+          <>
+            <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-emerald-400/20 blur-[120px] pointer-events-none"></div>
+            <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full bg-teal-400/20 blur-[120px] pointer-events-none"></div>
+          </>
+        );
+      case 'ADMIN':
+      default:
+        return (
+          <>
+            <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-emerald-400/20 blur-[120px] pointer-events-none"></div>
+            <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full bg-indigo-400/20 blur-[120px] pointer-events-none"></div>
+          </>
+        );
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-slate-50 flex relative overflow-hidden">
+    <div className="min-h-screen bg-[#F8FAFC] flex relative overflow-hidden">
       {/* Dynamic Premium Background */}
-      <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay pointer-events-none"></div>
-      <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-indigo-400/20 blur-[120px] pointer-events-none"></div>
-      <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full bg-purple-400/20 blur-[120px] pointer-events-none"></div>
+      <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay pointer-events-none z-0"></div>
+      {getBackgroundBlobs()}
 
       <Sidebar 
         currentView={currentView} 
@@ -87,17 +120,17 @@ export function DashboardLayout({ userRole }: DashboardLayoutProps) {
         <div className="flex-1 overflow-x-hidden">
           {/* Admin Dashboards */}
           {currentView === "dashboard" && userRole === "ADMIN" && <AdminDashboard />}
-          {currentView === "analytics" && userRole === "ADMIN" && <Analytics />}
+          {currentView === "analytics" && userRole === "ADMIN" && <Analytics userRole={userRole} />}
           {currentView === "settings" && userRole === "ADMIN" && <Settings userRole={userRole} user={user} />}
-          {currentView === "evaluation-templates" && userRole === "ADMIN" && <EvaluationTemplates />}
+          {currentView === "evaluation-templates" && userRole === "ADMIN" && <EvaluationTemplates userRole={userRole} />}
           {currentView === "hierarchy" && userRole === "ADMIN" && <HierarchyManagement />}
           {currentView === "provisioning" && userRole === "ADMIN" && <UserProvisioning />}
           
           {/* Official Dashboard */}
           {currentView === "dashboard" && userRole === "OFFICIAL" && <OfficialDashboard />}
           {currentView === "qa-action-plans" && userRole === "OFFICIAL" && <QAActionPlans />}
-          {currentView === "evaluation-templates" && userRole === "OFFICIAL" && <EvaluationTemplates />}
-          {currentView === "analytics" && userRole === "OFFICIAL" && <Analytics />}
+          {currentView === "evaluation-templates" && userRole === "OFFICIAL" && <EvaluationTemplates userRole={userRole} />}
+          {currentView === "analytics" && userRole === "OFFICIAL" && <Analytics userRole={userRole} />}
           {currentView === "settings" && userRole === "OFFICIAL" && <Settings userRole={userRole} user={user} />}
           
           {/* Lecturer Dashboards */}

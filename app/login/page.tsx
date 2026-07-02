@@ -20,28 +20,28 @@ export default function LoginPage() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [studentIdNumber, setStudentIdNumber] = useState("");
-  const [facultyId, setFacultyId] = useState("");
+  const [departmentId, setDepartmentId] = useState("");
   
-  const [faculties, setFaculties] = useState<any[]>([]);
+  const [departments, setDepartments] = useState<any[]>([]);
   
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
-  // Fetch faculties for signup
+  // Fetch departments for signup
   useEffect(() => {
-    fetch('/api/public/faculties')
+    fetch('/api/public/departments')
       .then(res => res.json())
       .then(data => {
-        if (data.faculties) {
-          setFaculties(data.faculties);
-          if (data.faculties.length > 0) {
-            setFacultyId(data.faculties[0].id);
+        if (data.departments) {
+          setDepartments(data.departments);
+          if (data.departments.length > 0) {
+            setDepartmentId(data.departments[0].id);
           }
         }
       })
-      .catch(err => console.error("Failed to load faculties", err));
+      .catch(err => console.error("Failed to load departments", err));
   }, []);
 
   const handleAuth = async (e: React.FormEvent) => {
@@ -116,7 +116,7 @@ export default function LoginPage() {
         
         if (authMode === "STUDENT_SIGNUP") {
           body.studentIdNumber = studentIdNumber;
-          body.facultyId = facultyId;
+          body.departmentId = departmentId;
         }
       }
 
@@ -165,15 +165,15 @@ export default function LoginPage() {
     <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 relative overflow-hidden">
       {/* Dynamic Premium Background */}
       <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay pointer-events-none z-0"></div>
-      <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-indigo-400/30 blur-[120px] pointer-events-none z-0"></div>
-      <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full bg-purple-400/30 blur-[120px] pointer-events-none z-0"></div>
+      <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-emerald-400/30 blur-[120px] pointer-events-none z-0"></div>
+      <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full bg-teal-400/30 blur-[120px] pointer-events-none z-0"></div>
 
       <div className="w-full max-w-5xl bg-white/60 backdrop-blur-2xl rounded-[2rem] shadow-[0_8px_32px_rgba(0,0,0,0.08)] border border-white/40 overflow-hidden flex flex-col md:flex-row relative z-10">
         
         {/* Left Panel: Branding & Context (Hidden on Mobile) */}
-        <div className="hidden md:flex w-full md:w-5/12 bg-indigo-600/90 backdrop-blur-xl p-10 text-white flex-col justify-between relative overflow-hidden border-r border-white/20">
+        <div className="hidden md:flex w-full md:w-5/12 bg-emerald-800/95 backdrop-blur-xl p-10 text-white flex-col justify-between relative overflow-hidden border-r border-white/20">
           <div className="absolute top-0 right-0 -mr-12 -mt-12 w-48 h-48 bg-white/10 rounded-full blur-2xl"></div>
-          <div className="absolute bottom-0 left-0 -ml-12 -mb-12 w-64 h-64 bg-indigo-800/30 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-0 left-0 -ml-12 -mb-12 w-64 h-64 bg-emerald-950/40 rounded-full blur-3xl"></div>
           
           <div className="relative z-10 flex items-center gap-3 mb-12">
             <Image src="/logo.png" alt="UniQualis Logo" width={40} height={40} className="shrink-0" />
@@ -182,20 +182,20 @@ export default function LoginPage() {
 
           <div className="relative z-10 mb-12 md:mb-0">
             <h2 className="text-3xl font-bold mb-4 leading-tight">University Quality Assurance System</h2>
-            <p className="text-indigo-100 text-sm leading-relaxed mb-6">
+            <p className="text-emerald-100 text-sm leading-relaxed mb-6">
               Securely access evaluation modules, performance analytics, and administrative oversight tools tailored to your academic role.
             </p>
             <div className="bg-white/10 p-4 rounded-xl border border-white/10 backdrop-blur-sm">
-              <p className="text-xs text-indigo-50 leading-relaxed font-medium">
+              <p className="text-xs text-emerald-50 leading-relaxed font-medium">
                 <span className="block font-bold text-white mb-1">Administrative Access:</span>
                 Lecturers, Officials, and System Admins must have their emails provisioned by the QA department prior to registration.
               </p>
             </div>
           </div>
 
-          <div className="relative z-10 flex items-center gap-4 text-xs font-medium text-indigo-200">
+          <div className="relative z-10 flex items-center gap-4 text-xs font-medium text-emerald-200">
             <span>Enterprise-Grade Security</span>
-            <span className="w-1 h-1 rounded-full bg-indigo-300"></span>
+            <span className="w-1 h-1 rounded-full bg-emerald-300"></span>
             <span>v2.5.0</span>
           </div>
         </div>
@@ -243,7 +243,7 @@ export default function LoginPage() {
                       required
                       value={firstName}
                       onChange={(e) => setFirstName(e.target.value)}
-                      className="w-full bg-white/50 backdrop-blur-md border border-white/60 text-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 shadow-sm"
+                      className="w-full bg-white/50 backdrop-blur-md border border-white/60 text-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50 shadow-sm"
                     />
                   </div>
                   <div className="space-y-2">
@@ -253,7 +253,7 @@ export default function LoginPage() {
                       required
                       value={lastName}
                       onChange={(e) => setLastName(e.target.value)}
-                      className="w-full bg-white/50 backdrop-blur-md border border-white/60 text-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 shadow-sm"
+                      className="w-full bg-white/50 backdrop-blur-md border border-white/60 text-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50 shadow-sm"
                     />
                   </div>
                 </div>
@@ -268,21 +268,21 @@ export default function LoginPage() {
                         value={studentIdNumber}
                         onChange={(e) => setStudentIdNumber(e.target.value)}
                         placeholder="e.g. UGR0202210083"
-                        className="w-full bg-white/50 backdrop-blur-md border border-white/60 text-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 shadow-sm"
+                        className="w-full bg-white/50 backdrop-blur-md border border-white/60 text-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50 shadow-sm"
                       />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-sm font-semibold text-slate-700 ml-1">Faculty</label>
+                      <label className="text-sm font-semibold text-slate-700 ml-1">Department</label>
                       <select
                         required
-                        value={facultyId}
-                        onChange={(e) => setFacultyId(e.target.value)}
-                        className="w-full bg-white/50 backdrop-blur-md border border-white/60 text-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 shadow-sm"
+                        value={departmentId}
+                        onChange={(e) => setDepartmentId(e.target.value)}
+                        className="w-full bg-white/50 backdrop-blur-md border border-white/60 text-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50 shadow-sm"
                       >
-                        <option value="" disabled>Select your faculty</option>
-                        {faculties.map((fac) => (
-                          <option key={fac.id} value={fac.id}>
-                            {fac.name}
+                        <option value="" disabled>Select your department</option>
+                        {departments.map((dept) => (
+                          <option key={dept.id} value={dept.id}>
+                            {dept.name}
                           </option>
                         ))}
                       </select>
@@ -300,7 +300,7 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder={authMode === "LOGIN" ? "Institutional email" : "Enter your email address"}
-                className="w-full bg-white/50 backdrop-blur-md border border-white/60 text-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 shadow-sm disabled:opacity-50"
+                className="w-full bg-white/50 backdrop-blur-md border border-white/60 text-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50 shadow-sm disabled:opacity-50"
                 disabled={authMode === "RESET_PASSWORD"}
               />
               {authMode === "STAFF_SIGNUP" && (
@@ -317,7 +317,7 @@ export default function LoginPage() {
                   value={resetToken}
                   onChange={(e) => setResetToken(e.target.value)}
                   placeholder="Enter 6-digit code"
-                  className="w-full bg-white/50 backdrop-blur-md border border-white/60 text-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 shadow-sm"
+                  className="w-full bg-white/50 backdrop-blur-md border border-white/60 text-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50 shadow-sm"
                 />
               </div>
             )}
@@ -326,7 +326,7 @@ export default function LoginPage() {
               <div className="space-y-2">
                 <div className="flex items-center justify-between ml-1 mb-1">
                   <label className="text-sm font-semibold text-slate-700">{authMode === "RESET_PASSWORD" ? "New Password" : "Password"}</label>
-                  {authMode === "LOGIN" && <button type="button" onClick={(e) => { e.preventDefault(); setAuthMode("FORGOT_PASSWORD"); setErrorMessage(""); setSuccessMessage(""); }} className="text-xs font-medium text-indigo-600 hover:text-indigo-700 bg-transparent border-none p-0 cursor-pointer">Forgot password?</button>}
+                  {authMode === "LOGIN" && <button type="button" onClick={(e) => { e.preventDefault(); setAuthMode("FORGOT_PASSWORD"); setErrorMessage(""); setSuccessMessage(""); }} className="text-xs font-medium text-emerald-700 hover:text-emerald-800 bg-transparent border-none p-0 cursor-pointer">Forgot password?</button>}
                 </div>
                 <div className="relative">
                   <input
@@ -335,7 +335,7 @@ export default function LoginPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder={authMode === "LOGIN" ? "Enter your password" : authMode === "RESET_PASSWORD" ? "Enter new password" : "Create a strong password"}
-                    className="w-full bg-white/50 backdrop-blur-md border border-white/60 text-slate-800 rounded-xl px-4 py-3 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 shadow-sm"
+                    className="w-full bg-white/50 backdrop-blur-md border border-white/60 text-slate-800 rounded-xl px-4 py-3 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50 shadow-sm"
                   />
                   <button
                     type="button"
@@ -351,7 +351,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-3.5 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition-all shadow-md shadow-indigo-500/20 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-6"
+              className="w-full py-3.5 bg-emerald-700 text-white rounded-xl font-medium hover:bg-emerald-800 transition-all shadow-md shadow-emerald-500/20 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-6"
             >
               {isLoading ? (
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
@@ -370,7 +370,7 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => { setAuthMode("STUDENT_SIGNUP"); setErrorMessage(""); }}
-                  className="flex items-center gap-2 text-sm font-semibold text-slate-700 hover:text-indigo-600 transition-colors bg-white/50 backdrop-blur-md px-4 py-2.5 rounded-lg border border-white/60 hover:border-indigo-200 w-full sm:w-auto justify-center shadow-sm"
+                  className="flex items-center gap-2 text-sm font-semibold text-slate-700 hover:text-emerald-700 transition-colors bg-white/50 backdrop-blur-md px-4 py-2.5 rounded-lg border border-white/60 hover:border-emerald-200 w-full sm:w-auto justify-center shadow-sm"
                 >
                   <UserCircle className="w-4 h-4" />
                   Student Registration
@@ -378,7 +378,7 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => { setAuthMode("STAFF_SIGNUP"); setErrorMessage(""); }}
-                  className="flex items-center gap-2 text-sm font-semibold text-slate-700 hover:text-indigo-600 transition-colors bg-white/50 backdrop-blur-md px-4 py-2.5 rounded-lg border border-white/60 hover:border-indigo-200 w-full sm:w-auto justify-center shadow-sm"
+                  className="flex items-center gap-2 text-sm font-semibold text-slate-700 hover:text-emerald-700 transition-colors bg-white/50 backdrop-blur-md px-4 py-2.5 rounded-lg border border-white/60 hover:border-emerald-200 w-full sm:w-auto justify-center shadow-sm"
                 >
                   <Briefcase className="w-4 h-4" />
                   Staff Registration
@@ -390,7 +390,7 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => { setAuthMode("LOGIN"); setErrorMessage(""); setSuccessMessage(""); }}
-                  className="flex items-center gap-2 text-sm font-bold text-indigo-600 hover:text-indigo-700 transition-colors"
+                  className="flex items-center gap-2 text-sm font-bold text-emerald-700 hover:text-emerald-800 transition-colors"
                 >
                   {(authMode === "FORGOT_PASSWORD" || authMode === "RESET_PASSWORD") ? "Return to Sign In" : "Sign In instead"}
                   <ArrowRight className="w-4 h-4" />

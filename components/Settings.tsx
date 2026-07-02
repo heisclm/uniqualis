@@ -42,6 +42,14 @@ export function Settings({
   const [isUpdatingPwd, setIsUpdatingPwd] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
+  const themeMapping: Record<string, any> = {
+    ADMIN: { bg: "bg-emerald-600", bgHover: "hover:bg-emerald-700", text: "text-emerald-600", light: "bg-emerald-50", border: "border-emerald-200", focus: "focus:ring-emerald-500/20 focus:border-emerald-500", peerFocus: "peer-focus:ring-emerald-500/20", peerChecked: "peer-checked:bg-emerald-600" },
+    OFFICIAL: { bg: "bg-emerald-600", bgHover: "hover:bg-emerald-700", text: "text-emerald-600", light: "bg-emerald-50", border: "border-emerald-200", focus: "focus:ring-emerald-500/20 focus:border-emerald-500", peerFocus: "peer-focus:ring-emerald-500/20", peerChecked: "peer-checked:bg-emerald-600" },
+    LECTURER: { bg: "bg-teal-600", bgHover: "hover:bg-teal-700", text: "text-teal-600", light: "bg-teal-50", border: "border-teal-200", focus: "focus:ring-teal-500/20 focus:border-teal-500", peerFocus: "peer-focus:ring-teal-500/20", peerChecked: "peer-checked:bg-teal-600" },
+    STUDENT: { bg: "bg-emerald-700", bgHover: "hover:bg-emerald-800", text: "text-emerald-700", light: "bg-emerald-50", border: "border-emerald-200", focus: "focus:ring-emerald-500/20 focus:border-emerald-500", peerFocus: "peer-focus:ring-emerald-500/20", peerChecked: "peer-checked:bg-emerald-700" }
+  };
+  const t = themeMapping[userRole] || themeMapping.STUDENT;
+
   const { register, handleSubmit, reset, formState: { errors, isDirty, isSubmitting }, control, watch } = useForm<SettingsFormValues>({
     resolver: zodResolver(settingsSchema),
     defaultValues: {
@@ -231,7 +239,7 @@ export function Settings({
     >
       <motion.div variants={itemVariants} className="mb-8">
         <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
-          <SettingsIcon className="w-6 h-6 text-blue-600" />
+          <SettingsIcon className={`w-6 h-6 ${t.text}`} />
           {tabs.find(t => t.id === activeTab)?.label || "Settings"}
         </h1>
         <p className="text-sm text-slate-500 mt-1">Manage your account preferences and configurations.</p>
@@ -246,7 +254,7 @@ export function Settings({
               onClick={() => setActiveTab(tab.id)}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium text-sm ${
                 activeTab === tab.id 
-                  ? "bg-white text-blue-600 shadow-sm border border-blue-100" 
+                  ? `bg-white ${t.text} shadow-sm border border-slate-100` 
                   : "text-slate-500 hover:bg-white/60 hover:text-slate-700 border border-transparent"
               }`}
             >
@@ -308,7 +316,7 @@ export function Settings({
                         </span>
                       )}
                     </div>
-                    <label className="text-xs font-medium text-blue-600 hover:text-blue-700 transition-colors cursor-pointer">
+                    <label className={`text-xs font-medium ${t.text} opacity-80 hover:opacity-100 transition-colors cursor-pointer`}>
                       Change Avatar
                       <input 
                         type="file" 
@@ -354,18 +362,18 @@ export function Settings({
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-1.5">
                         <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">First Name</label>
-                        <input type="text" {...register("firstName")} className={`w-full h-11 px-4 rounded-xl border ${errors.firstName ? 'border-red-400 focus:ring-red-500/20 focus:border-red-500' : 'border-slate-200 focus:ring-blue-500/20 focus:border-blue-500'} text-sm focus:ring-2 outline-none transition-all`} />
+                        <input type="text" {...register("firstName")} className={`w-full h-11 px-4 rounded-xl border ${errors.firstName ? 'border-red-400 focus:ring-red-500/20 focus:border-red-500' : 'border-slate-200 ${t.focus}'} text-sm focus:ring-2 outline-none transition-all`} />
                         {errors.firstName && <span className="text-xs text-red-500">{errors.firstName.message}</span>}
                       </div>
                       <div className="space-y-1.5">
                         <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Last Name</label>
-                        <input type="text" {...register("lastName")} className={`w-full h-11 px-4 rounded-xl border ${errors.lastName ? 'border-red-400 focus:ring-red-500/20 focus:border-red-500' : 'border-slate-200 focus:ring-blue-500/20 focus:border-blue-500'} text-sm focus:ring-2 outline-none transition-all`} />
+                        <input type="text" {...register("lastName")} className={`w-full h-11 px-4 rounded-xl border ${errors.lastName ? 'border-red-400 focus:ring-red-500/20 focus:border-red-500' : 'border-slate-200 ${t.focus}'} text-sm focus:ring-2 outline-none transition-all`} />
                         {errors.lastName && <span className="text-xs text-red-500">{errors.lastName.message}</span>}
                       </div>
                     </div>
                     <div className="space-y-1.5">
                       <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Contact Email</label>
-                      <input type="email" {...register("email")} className={`w-full h-11 px-4 rounded-xl border ${errors.email ? 'border-red-400 focus:ring-red-500/20 focus:border-red-500' : 'border-slate-200 focus:ring-blue-500/20 focus:border-blue-500'} text-sm focus:ring-2 outline-none transition-all`} />
+                      <input type="email" {...register("email")} className={`w-full h-11 px-4 rounded-xl border ${errors.email ? 'border-red-400 focus:ring-red-500/20 focus:border-red-500' : 'border-slate-200 ${t.focus}'} text-sm focus:ring-2 outline-none transition-all`} />
                       {errors.email && <span className="text-xs text-red-500">{errors.email.message}</span>}
                     </div>
                   </div>
@@ -378,11 +386,11 @@ export function Settings({
                   <div className="p-5 rounded-2xl bg-slate-50 border border-slate-100 grid grid-cols-1 sm:grid-cols-2 gap-6">
                     <div>
                       <span className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Student ID</span>
-                      <span className="font-mono text-sm text-slate-800 font-medium bg-white px-3 py-1.5 rounded-lg border border-slate-200 inline-block">{dbUser?.studentIdNumber || "N/A"}</span>
+                      <span className="font-mono text-sm text-slate-800 font-medium bg-white px-3 py-1.5 rounded-lg border border-slate-200 inline-block">{dbUser?.studentIdNumber || (dbUser?.id ? dbUser.id.split('-')[0].toUpperCase() : "N/A")}</span>
                     </div>
                     <div>
                       <span className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Faculty / Department</span>
-                      <span className="text-sm font-medium text-slate-800">{dbUser?.studentFaculty?.name || "N/A"}</span>
+                      <span className="text-sm font-medium text-slate-800">{dbUser?.studentDepartment?.name || "N/A"}</span>
                     </div>
                   </div>
                   <p className="text-xs text-slate-400 mt-3 flex items-center gap-1.5">
@@ -399,7 +407,7 @@ export function Settings({
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-1.5">
                         <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Title</label>
-                        <select {...register("title")} className="w-full h-11 px-4 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all bg-white">
+                        <select {...register("title")} className="w-full h-11 px-4 rounded-xl border border-slate-200 text-sm focus:ring-2 ${t.focus} outline-none transition-all bg-white">
                           <option value="Dr.">Dr.</option>
                           <option value="Prof.">Prof.</option>
                           <option value="Mr.">Mr.</option>
@@ -409,12 +417,12 @@ export function Settings({
                       </div>
                       <div className="space-y-1.5">
                         <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Office Hours</label>
-                        <input type="text" {...register("officeHours")} placeholder="Mon/Wed 2:00 PM - 4:00 PM" className="w-full h-11 px-4 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all" />
+                        <input type="text" {...register("officeHours")} placeholder="Mon/Wed 2:00 PM - 4:00 PM" className="w-full h-11 px-4 rounded-xl border border-slate-200 text-sm focus:ring-2 ${t.focus} outline-none transition-all" />
                       </div>
                     </div>
                     <div className="mt-4 space-y-1.5">
                       <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Short Bio</label>
-                      <textarea rows={3} {...register("shortBio")} placeholder="Focuses on algorithmic efficiency and data structures." className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all resize-none"></textarea>
+                      <textarea rows={3} {...register("shortBio")} placeholder="Focuses on algorithmic efficiency and data structures." className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm focus:ring-2 ${t.focus} outline-none transition-all resize-none"></textarea>
                     </div>
                   </div>
 
@@ -437,6 +445,26 @@ export function Settings({
                   </div>
                 </>
               )}
+
+              {userRole === "OFFICIAL" && (
+                <div className="pt-6 border-t border-slate-100">
+                  <h3 className="text-lg font-semibold text-slate-900 tracking-tight mb-4">Institutional Records</h3>
+                  <div className="p-5 rounded-2xl bg-slate-50 border border-slate-100 grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div>
+                      <span className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Employee ID</span>
+                      <span className="font-mono text-sm text-slate-800 font-medium bg-white px-3 py-1.5 rounded-lg border border-slate-200 inline-block">{dbUser?.id?.split('-')[0] || "EMP-99382"}</span>
+                    </div>
+                    <div>
+                      <span className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Department / Faculty</span>
+                      <span className="text-sm font-medium text-slate-800">{dbUser?.officialDepartment?.name || "N/A"}</span>
+                    </div>
+                  </div>
+                  <p className="text-xs text-slate-400 mt-3 flex items-center gap-1.5">
+                    <Shield className="w-3.5 h-3.5" />
+                    These fields are read-only as they are authoritative institutional records.
+                  </p>
+                </div>
+              )}
             </div>
           )}
 
@@ -447,11 +475,11 @@ export function Settings({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Current Term Name</label>
-                    <input type="text" value={sysSettings.currentTermName} onChange={e => setSysSettings({...sysSettings, currentTermName: e.target.value})} className="w-full h-11 px-4 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all" />
+                    <input type="text" value={sysSettings.currentTermName} onChange={e => setSysSettings({...sysSettings, currentTermName: e.target.value})} className="w-full h-11 px-4 rounded-xl border border-slate-200 text-sm focus:ring-2 ${t.focus} outline-none transition-all" />
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Default Department View</label>
-                    <select value={sysSettings.defaultDepartmentView} onChange={e => setSysSettings({...sysSettings, defaultDepartmentView: e.target.value})} className="w-full h-11 px-4 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all bg-white">
+                    <select value={sysSettings.defaultDepartmentView} onChange={e => setSysSettings({...sysSettings, defaultDepartmentView: e.target.value})} className="w-full h-11 px-4 rounded-xl border border-slate-200 text-sm focus:ring-2 ${t.focus} outline-none transition-all bg-white">
                       <option>All Departments</option>
                       <option>Computer Science</option>
                       <option>Mathematics</option>
@@ -466,17 +494,17 @@ export function Settings({
                   <div className="flex flex-col sm:flex-row gap-4">
                     <div className="flex-1 space-y-1.5">
                       <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Start Date</label>
-                      <input type="date" value={sysSettings.evalWindowStartDate} onChange={e => setSysSettings({...sysSettings, evalWindowStartDate: e.target.value})} className="w-full h-11 px-4 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-slate-700" />
+                      <input type="date" value={sysSettings.evalWindowStartDate} onChange={e => setSysSettings({...sysSettings, evalWindowStartDate: e.target.value})} className="w-full h-11 px-4 rounded-xl border border-slate-200 text-sm focus:ring-2 ${t.focus} outline-none transition-all text-slate-700" />
                     </div>
                     <div className="flex-1 space-y-1.5">
                       <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">End Date</label>
-                      <input type="date" value={sysSettings.evalWindowEndDate} onChange={e => setSysSettings({...sysSettings, evalWindowEndDate: e.target.value})} className="w-full h-11 px-4 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-slate-700" />
+                      <input type="date" value={sysSettings.evalWindowEndDate} onChange={e => setSysSettings({...sysSettings, evalWindowEndDate: e.target.value})} className="w-full h-11 px-4 rounded-xl border border-slate-200 text-sm focus:ring-2 ${t.focus} outline-none transition-all text-slate-700" />
                     </div>
                   </div>
                   <label className="flex items-start gap-3 cursor-pointer group mt-4">
                     <div className="relative flex items-start">
                       <input type="checkbox" checked={sysSettings.autoClosePortal} onChange={e => setSysSettings({...sysSettings, autoClosePortal: e.target.checked})} className="peer sr-only" />
-                      <div className="w-5 h-5 rounded border-2 border-slate-300 peer-checked:border-blue-600 peer-checked:bg-blue-600 flex items-center justify-center transition-all">
+                      <div className="w-5 h-5 rounded border-2 border-slate-300 ${t.border} ${t.peerChecked} flex items-center justify-center transition-all">
                         <Check className="w-3 h-3 text-white opacity-0 peer-checked:opacity-100" />
                       </div>
                     </div>
@@ -492,7 +520,7 @@ export function Settings({
                 <button type="button" onClick={handleUpdateSystemSettings} disabled={!isSysDirty || isSysSubmitting} className={`h-10 px-5 rounded-xl font-medium text-sm shadow-md transition-all ${
                   !isSysDirty || isSysSubmitting 
                     ? 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200' 
-                    : 'bg-blue-600 text-white hover:bg-blue-700'
+                    : `${t.bg} text-white ${t.bgHover}`
                 }`}>
                   {isSysSubmitting ? 'Saving...' : 'Save Changes'}
                 </button>
@@ -509,7 +537,7 @@ export function Settings({
                   <div className="space-y-1.5">
                     <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Current Password</label>
                     <div className="relative">
-                      <input type={showPassword ? "text" : "password"} value={pwdCurrent} onChange={(e) => setPwdCurrent(e.target.value)} placeholder="••••••••" className="w-full h-11 px-4 pr-12 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all" />
+                      <input type={showPassword ? "text" : "password"} value={pwdCurrent} onChange={(e) => setPwdCurrent(e.target.value)} placeholder="••••••••" className="w-full h-11 px-4 pr-12 rounded-xl border border-slate-200 text-sm focus:ring-2 ${t.focus} outline-none transition-all" />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
@@ -522,7 +550,7 @@ export function Settings({
                   <div className="space-y-1.5">
                     <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">New Password</label>
                     <div className="relative">
-                      <input type={showPassword ? "text" : "password"} value={pwdNew} onChange={(e) => setPwdNew(e.target.value)} placeholder="••••••••" className="w-full h-11 px-4 pr-12 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all" />
+                      <input type={showPassword ? "text" : "password"} value={pwdNew} onChange={(e) => setPwdNew(e.target.value)} placeholder="••••••••" className="w-full h-11 px-4 pr-12 rounded-xl border border-slate-200 text-sm focus:ring-2 ${t.focus} outline-none transition-all" />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
@@ -535,7 +563,7 @@ export function Settings({
                   <div className="space-y-1.5">
                     <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Confirm New Password</label>
                     <div className="relative">
-                      <input type={showPassword ? "text" : "password"} value={pwdConfirm} onChange={(e) => setPwdConfirm(e.target.value)} placeholder="••••••••" className="w-full h-11 px-4 pr-12 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all" />
+                      <input type={showPassword ? "text" : "password"} value={pwdConfirm} onChange={(e) => setPwdConfirm(e.target.value)} placeholder="••••••••" className="w-full h-11 px-4 pr-12 rounded-xl border border-slate-200 text-sm focus:ring-2 ${t.focus} outline-none transition-all" />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
@@ -582,7 +610,7 @@ export function Settings({
                         </div>
                         <div className="relative shrink-0">
                           <input type="checkbox" defaultChecked className="peer sr-only" />
-                          <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                          <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all ${t.peerChecked}"></div>
                         </div>
                       </label>
 
@@ -593,7 +621,7 @@ export function Settings({
                         </div>
                         <div className="relative shrink-0">
                           <input type="checkbox" defaultChecked className="peer sr-only" />
-                          <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                          <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all ${t.peerChecked}"></div>
                         </div>
                       </label>
 
@@ -604,7 +632,7 @@ export function Settings({
                         </div>
                         <div className="relative shrink-0">
                           <input type="checkbox" className="peer sr-only" />
-                          <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                          <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all ${t.peerChecked}"></div>
                         </div>
                       </label>
                       
@@ -616,7 +644,7 @@ export function Settings({
                           </div>
                           <div className="relative shrink-0">
                             <input type="checkbox" defaultChecked className="peer sr-only" />
-                            <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                            <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all ${t.peerChecked}"></div>
                           </div>
                         </label>
                       )}
@@ -632,7 +660,7 @@ export function Settings({
                         </div>
                         <div className="relative shrink-0">
                           <input type="checkbox" {...register("notifyEvalWindow")} className="peer sr-only" />
-                          <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                          <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all ${t.peerChecked}"></div>
                         </div>
                       </label>
                       <label className="flex items-center justify-between p-4 rounded-2xl border border-slate-100 bg-slate-50/50 cursor-pointer hover:border-slate-200 transition-colors">
@@ -642,7 +670,7 @@ export function Settings({
                         </div>
                         <div className="relative shrink-0">
                           <input type="checkbox" {...register("notifySubmissionReceipt")} className="peer sr-only" />
-                          <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                          <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all ${t.peerChecked}"></div>
                         </div>
                       </label>
                     </>
@@ -657,7 +685,7 @@ export function Settings({
                         </div>
                         <div className="relative shrink-0">
                           <input type="checkbox" {...register("notifyWeeklyDigest")} className="peer sr-only" />
-                          <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                          <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all ${t.peerChecked}"></div>
                         </div>
                       </label>
                       <label className="flex items-center justify-between p-4 rounded-2xl border border-slate-100 bg-slate-50/50 cursor-pointer hover:border-slate-200 transition-colors">
@@ -667,7 +695,7 @@ export function Settings({
                         </div>
                         <div className="relative shrink-0">
                           <input type="checkbox" {...register("notifyLowAverage")} className="peer sr-only" />
-                          <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                          <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all ${t.peerChecked}"></div>
                         </div>
                       </label>
                       <label className="flex items-center justify-between p-4 rounded-2xl border border-slate-100 bg-slate-50/50 cursor-pointer hover:border-slate-200 transition-colors">
@@ -677,7 +705,7 @@ export function Settings({
                         </div>
                         <div className="relative shrink-0">
                           <input type="checkbox" {...register("notifyEvalWindow")} className="peer sr-only" />
-                          <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                          <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all ${t.peerChecked}"></div>
                         </div>
                       </label>
                     </>
@@ -705,14 +733,14 @@ export function Settings({
                     <div className="flex flex-col sm:flex-row items-center gap-4">
                       <div className="w-full sm:w-auto flex-1 space-y-1.5">
                         <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Academic Year</label>
-                        <select className="w-full h-11 px-4 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all bg-white">
+                        <select className="w-full h-11 px-4 rounded-xl border border-slate-200 text-sm focus:ring-2 ${t.focus} outline-none transition-all bg-white">
                           <option>2025 - 2026</option>
                           <option>2024 - 2025</option>
                           <option>2023 - 2024</option>
                           <option>All History</option>
                         </select>
                       </div>
-                      <button className="w-full sm:w-auto h-11 px-6 mt-0 sm:mt-5 rounded-xl font-semibold text-sm bg-blue-600 text-white shadow-md hover:bg-blue-700 transition-all flex items-center justify-center gap-2 shrink-0">
+                      <button className={`w-full sm:w-auto h-11 px-6 mt-0 sm:mt-5 rounded-xl font-semibold text-sm ${t.bg} text-white shadow-md ${t.bgHover} transition-all flex items-center justify-center gap-2 shrink-0`}>
                         Generate PDF
                       </button>
                     </div>
@@ -730,7 +758,7 @@ export function Settings({
               <button type="submit" disabled={!isDirty || isSubmitting} className={`h-10 px-5 rounded-xl font-medium text-sm shadow-md transition-all ${
                 !isDirty || isSubmitting 
                   ? 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200' 
-                  : 'bg-blue-600 text-white hover:bg-blue-700'
+                  : `${t.bg} text-white ${t.bgHover}`
               }`}>
                 {isSubmitting ? 'Saving...' : 'Save Changes'}
               </button>

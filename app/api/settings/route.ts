@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyToken } from "@/lib/auth";
+import { v2 as cloudinary } from 'cloudinary';
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 export async function GET(req: NextRequest) {
   try {
@@ -26,9 +33,10 @@ export async function GET(req: NextRequest) {
         officeHours: true,
         shortBio: true,
         studentIdNumber: true,
+        profileImageUrl: true,
         lecturerDepartment: { select: { name: true } },
         officialDepartment: { select: { name: true } },
-        studentFaculty: { select: { name: true } },
+        studentDepartment: { select: { name: true } },
       }
     });
 
@@ -51,12 +59,22 @@ export async function PUT(req: NextRequest) {
 
     const body = await req.json();
     
-    // Strict Payload Stripping: Only extract explicitly allowed fields.
-    // Malicious attempts to overwrite studentIdNumber or relationships will be ignored.
-    const { 
+    let { 
       notifyWeeklyDigest, notifyLowAverage, notifyEvalWindow, notifySubmissionReceipt,
       firstName, lastName, email, title, officeHours, shortBio, profileImageUrl
     } = body;
+
+    if (profileImageUrl && profileImageUrl.startsWith('data:image')) {
+      try {
+        const uploadResponse = await cloudinary.uploader.upload(profileImageUrl, {
+          folder: 'uniqualis_avatars',
+        });
+        profileImageUrl = uploadResponse.secure_url;
+      } catch (uploadError) {
+        console.error("Cloudinary Upload Error:", uploadError);
+        return NextResponse.json({ error: "Failed to upload avatar" }, { status: 500 });
+      }
+    }
 
     const updatedUser = await prisma.user.update({
       where: { id: payload.sub as string },
@@ -81,3 +99,4 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ error: "Failed to update settings" }, { status: 500 });
   }
 }
+

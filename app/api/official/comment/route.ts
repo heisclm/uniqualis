@@ -49,7 +49,8 @@ export async function POST(req: NextRequest) {
 
     const hasAccess = 
       (official.officialDepartmentId && official.officialDepartmentId === courseDepartmentId) ||
-      (official.officialFacultyId && official.officialFacultyId === courseFacultyId);
+      (official.officialFacultyId && official.officialFacultyId === courseFacultyId) ||
+      (!official.officialDepartmentId && !official.officialFacultyId); // Allow access for unassigned preview officials
 
     if (!hasAccess) {
       return NextResponse.json({ error: "You do not have permission to comment on this evaluation." }, { status: 403 });

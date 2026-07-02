@@ -121,7 +121,7 @@ export function AdminDashboard({ onNavigate }: { onNavigate?: (view: string) => 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-full w-full p-12">
-        <Loader2 className="w-8 h-8 text-indigo-500 animate-spin" />
+        <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
       </div>
     );
   }
@@ -175,10 +175,43 @@ export function AdminDashboard({ onNavigate }: { onNavigate?: (view: string) => 
         </div>
       </motion.div>
 
+      {/* Onboarding / First-Login Banner */}
+      {totalDepartments === 0 && (
+        <motion.div variants={itemVariants} className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl p-8 shadow-xl text-white relative overflow-hidden border border-slate-700">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-[80px]"></div>
+          <div className="relative z-10">
+            <h2 className="text-2xl font-bold mb-2 flex items-center gap-2">
+              <Zap className="w-6 h-6 text-emerald-400" />
+              Welcome to UniQualis
+            </h2>
+            <p className="text-slate-300 max-w-2xl mb-6">
+              Your system is currently empty. To get started, you need to build the institution&apos;s hierarchy. 
+              Begin by creating Faculties and Departments, and then provision user accounts for Deans, HODs, and Lecturers.
+            </p>
+            <div className="flex flex-wrap gap-4">
+              <button 
+                onClick={() => onNavigate?.('hierarchy')}
+                className="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-xl font-semibold transition-colors flex items-center gap-2 shadow-lg shadow-emerald-500/20"
+              >
+                <LayoutTemplate className="w-5 h-5" />
+                Build Hierarchy
+              </button>
+              <button 
+                onClick={() => onNavigate?.('users')}
+                className="bg-white/10 hover:bg-white/20 text-white px-6 py-3 rounded-xl font-semibold transition-colors border border-white/10 flex items-center gap-2"
+              >
+                <ShieldCheck className="w-5 h-5" />
+                Provision Users
+              </button>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
       {/* Top 3 Stat Cards */}
       <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-        <div className="bg-white rounded-3xl p-6 shadow-[0_4px_24px_rgba(0,0,0,0.02)] border border-slate-200/60 flex flex-col justify-between aspect-auto sm:aspect-[4/3] group hover:border-blue-200 transition-colors">
-            <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600 mb-4 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+        <div className="bg-white rounded-3xl p-6 shadow-[0_4px_24px_rgba(0,0,0,0.02)] border border-slate-200/60 flex flex-col justify-between aspect-auto sm:aspect-[4/3] group hover:border-emerald-200 transition-colors">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600 mb-4 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
               <CheckCircle className="w-6 h-6" />
             </div>
             <div>
@@ -220,7 +253,7 @@ export function AdminDashboard({ onNavigate }: { onNavigate?: (view: string) => 
               </h3>
               <p className="text-xs text-slate-500 mt-1">Issues requiring immediate attention.</p>
             </div>
-            <button className="text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors">Mark all read</button>
+            <button className="text-sm font-medium text-emerald-600 hover:text-emerald-700 transition-colors">Mark all read</button>
           </div>
           
           <div className="flex-1 overflow-y-auto pr-2 space-y-3 custom-scrollbar">
@@ -228,9 +261,9 @@ export function AdminDashboard({ onNavigate }: { onNavigate?: (view: string) => 
               { title: "System running smoothly", time: "Just now", type: "info" }
             ]).map((alert: any, i: number) => (
               <div key={i} className="flex gap-4 p-4 rounded-2xl border border-slate-100 bg-slate-50/50 hover:bg-white hover:shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:border-slate-200 transition-all group cursor-pointer">
-                <div className={`mt-0.5 shrink-0 w-2 h-2 rounded-full ${alert.type === 'critical' ? 'bg-red-500' : alert.type === 'warning' ? 'bg-amber-500' : 'bg-blue-500'}`} />
+                <div className={`mt-0.5 shrink-0 w-2 h-2 rounded-full ${alert.type === 'critical' ? 'bg-red-500' : alert.type === 'warning' ? 'bg-amber-500' : 'bg-emerald-500'}`} />
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-slate-800 leading-snug group-hover:text-blue-600 transition-colors">{alert.title}</p>
+                  <p className="text-sm font-medium text-slate-800 leading-snug group-hover:text-emerald-600 transition-colors">{alert.title}</p>
                   <div className="flex items-center gap-1.5 mt-2">
                     <Clock className="w-3.5 h-3.5 text-slate-400" />
                     <span className="text-xs text-slate-500 font-medium">{alert.time}</span>
@@ -244,11 +277,11 @@ export function AdminDashboard({ onNavigate }: { onNavigate?: (view: string) => 
 
         {/* Quick Actions Matrix */}
         <motion.div variants={itemVariants} className="bg-slate-900 rounded-3xl p-6 md:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.12)] text-white relative overflow-hidden flex flex-col h-auto lg:h-[500px] w-full lg:w-1/2">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-[80px]"></div>
+          <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-[80px]"></div>
           
           <div className="relative z-10 mb-8">
             <h3 className="text-xl font-bold tracking-tight flex items-center gap-2">
-              <Zap className="w-5 h-5 text-blue-400" />
+              <Zap className="w-5 h-5 text-emerald-400" />
               Quick Actions
             </h3>
             <p className="text-sm text-slate-400 mt-1">Frequent administrative tasks.</p>
@@ -258,9 +291,9 @@ export function AdminDashboard({ onNavigate }: { onNavigate?: (view: string) => 
             <button 
               disabled={isTogglingEvaluation}
               onClick={handleToggleEvaluation}
-              className="flex flex-col items-start p-5 rounded-2xl bg-white/5 border border-white/10 hover:bg-blue-600/20 hover:border-blue-500/30 transition-all text-left group disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex flex-col items-start p-5 rounded-2xl bg-white/5 border border-white/10 hover:bg-emerald-600/20 hover:border-emerald-500/30 transition-all text-left group disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-400 mb-4 group-hover:scale-110 transition-transform">
+              <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center text-emerald-400 mb-4 group-hover:scale-110 transition-transform">
                 {isTogglingEvaluation ? <Loader2 className="w-5 h-5 animate-spin" /> : <LayoutTemplate className="w-5 h-5" />}
               </div>
               <h4 className="font-semibold text-white mb-1">Open/Close Evaluation Window</h4>
@@ -293,9 +326,9 @@ export function AdminDashboard({ onNavigate }: { onNavigate?: (view: string) => 
             <button 
               disabled={isExtractingSummary}
               onClick={handleExtractSummary}
-              className="flex flex-col items-start p-5 rounded-2xl bg-white/5 border border-white/10 hover:bg-indigo-500/20 hover:border-indigo-500/30 transition-all text-left group disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex flex-col items-start p-5 rounded-2xl bg-white/5 border border-white/10 hover:bg-emerald-500/20 hover:border-emerald-500/30 transition-all text-left group disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <div className="w-10 h-10 rounded-xl bg-indigo-500/20 flex items-center justify-center text-indigo-400 mb-4 group-hover:scale-110 transition-transform">
+              <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center text-emerald-400 mb-4 group-hover:scale-110 transition-transform">
                 {isExtractingSummary ? <Loader2 className="w-5 h-5 animate-spin" /> : <Download className="w-5 h-5" />}
               </div>
               <h4 className="font-semibold text-white mb-1">Extract Executive Summary</h4>

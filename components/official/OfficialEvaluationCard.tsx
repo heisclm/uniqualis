@@ -76,7 +76,7 @@ export function OfficialEvaluationCard({ evaluation, onCommentSubmitted }: Offic
   };
 
   return (
-    <div className="bg-white rounded-[1.5rem] border border-slate-100 shadow-sm overflow-hidden transition-all duration-300">
+    <div className="bg-white rounded-[2rem] border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden hover:-translate-y-1 transition-all duration-300">
       <div className="p-6 md:p-8">
         
         {/* Header Info */}
@@ -129,29 +129,29 @@ export function OfficialEvaluationCard({ evaluation, onCommentSubmitted }: Offic
           {/* Lecturer Response Section */}
           {evaluation.lecturerResponse && (
             <div className="relative">
-              <div className="absolute -left-[1.05rem] md:-left-[2.05rem] top-3 w-3 h-3 bg-indigo-200 rounded-full border-2 border-white"></div>
-              <div className="bg-indigo-50/50 rounded-2xl p-5 border border-indigo-100/50">
+              <div className="absolute -left-[1.05rem] md:-left-[2.05rem] top-3 w-3 h-3 bg-emerald-200 rounded-full border-2 border-white"></div>
+              <div className="bg-emerald-50/50 rounded-2xl p-5 border border-emerald-100/50">
                 <div className="flex items-center gap-2 mb-3">
-                  <ShieldCheck className="w-4 h-4 text-indigo-500" />
-                  <span className="text-xs font-bold text-indigo-900 uppercase tracking-wide">Lecturer Response</span>
-                  <span className="text-xs font-medium text-indigo-400 ml-auto">
+                  <ShieldCheck className="w-4 h-4 text-emerald-500" />
+                  <span className="text-xs font-bold text-emerald-900 uppercase tracking-wide">Lecturer Response</span>
+                  <span className="text-xs font-medium text-emerald-400 ml-auto">
                     {format(new Date(evaluation.lecturerResponse.createdAt), 'MMM d, yyyy')}
                   </span>
                 </div>
-                <p className="text-sm text-indigo-900/80 leading-relaxed mb-3">
+                <p className="text-sm text-emerald-900/80 leading-relaxed mb-3">
                   {evaluation.lecturerResponse.content}
                 </p>
                 
                 {evaluation.lecturerResponse.attachments?.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-indigo-100">
-                    <span className="text-xs font-bold text-indigo-400 uppercase w-full">Attached Evidence</span>
+                  <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-emerald-100">
+                    <span className="text-xs font-bold text-emerald-400 uppercase w-full">Attached Evidence</span>
                     {evaluation.lecturerResponse.attachments.map((att, idx) => (
                       <a 
                         key={idx}
                         href={att.url} 
                         target="_blank" 
                         rel="noopener noreferrer"
-                        className="px-3 py-1.5 bg-white border border-indigo-100 rounded-lg text-xs font-medium text-indigo-600 hover:bg-indigo-50 transition-colors truncate max-w-[200px]"
+                        className="px-3 py-1.5 bg-white border border-emerald-100 rounded-lg text-xs font-medium text-emerald-600 hover:bg-emerald-50 transition-colors truncate max-w-[200px]"
                       >
                         {att.fileName}
                       </a>
@@ -211,7 +211,7 @@ export function OfficialEvaluationCard({ evaluation, onCommentSubmitted }: Offic
                   value={commentText}
                   onChange={(e) => setCommentText(e.target.value)}
                   placeholder="Draft your administrative note or commendation..."
-                  className="w-full bg-slate-50 border border-slate-200 text-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all resize-none mb-4"
+                  className="w-full bg-slate-50 border border-slate-200 text-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all resize-none mb-4"
                 ></textarea>
                 
                 <div className="flex items-center gap-2 mb-4">
@@ -220,7 +220,7 @@ export function OfficialEvaluationCard({ evaluation, onCommentSubmitted }: Offic
                     id={`commendation-${evaluation.id}`}
                     checked={isCommendation}
                     onChange={(e) => setIsCommendation(e.target.checked)}
-                    className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
+                    className="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500"
                   />
                   <label htmlFor={`commendation-${evaluation.id}`} className="text-sm font-medium text-slate-700 flex items-center gap-1.5">
                     <BadgeCheck className="w-4 h-4 text-amber-500" />
@@ -248,7 +248,7 @@ export function OfficialEvaluationCard({ evaluation, onCommentSubmitted }: Offic
                   <button 
                     onClick={handleSubmitComment}
                     disabled={isSubmitting || !commentText.trim()}
-                    className="flex items-center gap-2 px-6 py-2 bg-indigo-600 text-white text-sm font-medium rounded-full hover:bg-indigo-700 transition-all shadow-md shadow-indigo-500/20 disabled:opacity-50"
+                    className="flex items-center gap-2 px-6 py-2 bg-emerald-600 text-white text-sm font-medium rounded-full hover:bg-emerald-700 transition-all shadow-md shadow-emerald-500/20 disabled:opacity-50 active:scale-95"
                   >
                     {isSubmitting ? (
                       <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>

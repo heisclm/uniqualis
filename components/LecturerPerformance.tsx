@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Loader2, TrendingUp, BarChart2, MessageSquare, Filter, Zap, Target } from "lucide-react";
 import { EvaluationCard, type Evaluation } from "@/components/lecturer/EvaluationCard";
 import { EmptyFeed } from "@/components/lecturer/EmptyFeed";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
 
 export function LecturerPerformance() {
   const [evaluations, setEvaluations] = useState<Evaluation[]>([]);
@@ -59,7 +59,7 @@ export function LecturerPerformance() {
   if (isLoading && courses.length === 0) {
     return (
       <div className="flex items-center justify-center h-[60vh] w-full">
-        <Loader2 className="w-8 h-8 text-indigo-500 animate-spin" />
+        <Loader2 className="w-8 h-8 text-teal-500 animate-spin" />
       </div>
     );
   }
@@ -84,7 +84,7 @@ export function LecturerPerformance() {
       
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-slate-800 tracking-tight">Deep Analytics Hub</h1>
+          <h1 className="text-3xl md:text-4xl font-display font-bold text-slate-800 tracking-tight">Deep Analytics Hub</h1>
           <p className="text-sm text-slate-500 mt-1">Granular retrospective analysis of your evaluation metrics and student feedback.</p>
         </div>
         
@@ -137,30 +137,36 @@ export function LecturerPerformance() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 min-w-0">
         
         {/* Trend Graph */}
-        <div className="bg-white rounded-3xl p-6 md:p-8 shadow-[0_4px_24px_rgba(0,0,0,0.02)] border border-slate-200/60">
+        <div className="bg-white rounded-[2rem] p-6 md:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 hover:-translate-y-1 transition-all duration-300 min-w-0">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-indigo-500" />
+            <h2 className="text-xl font-display font-bold text-slate-800 flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-teal-500" />
               Semester Performance Trend
             </h2>
-            <span className="text-xs font-semibold px-2.5 py-1 bg-indigo-50 text-indigo-600 rounded-lg">Historical</span>
+            <span className="text-xs font-semibold px-2.5 py-1 bg-teal-50 text-teal-600 rounded-lg">Historical</span>
           </div>
-          <div className="h-[300px] w-full">
+          <div className="h-[250px] sm:h-[300px] w-full">
             {dynamicTrendData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={dynamicTrendData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
-                  <Line type="monotone" dataKey="score" stroke="#6366f1" strokeWidth={3} activeDot={{ r: 8 }} />
-                  <CartesianGrid stroke="#f1f5f9" strokeDasharray="5 5" />
+                <AreaChart data={dynamicTrendData} margin={{ top: 5, right: 20, bottom: 5, left: -20 }}>
+                  <defs>
+                    <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <Area type="monotone" dataKey="score" stroke="#6366f1" strokeWidth={3} fillOpacity={1} fill="url(#colorScore)" activeDot={{ r: 6, strokeWidth: 0, fill: '#6366f1' }} />
+                  <CartesianGrid stroke="#f1f5f9" strokeDasharray="5 5" vertical={false} />
                   <XAxis dataKey="semester" stroke="#94a3b8" fontSize={12} tickMargin={10} axisLine={false} tickLine={false} />
                   <YAxis stroke="#94a3b8" fontSize={12} domain={[0, 5]} ticks={[0, 1, 2, 3, 4, 5]} axisLine={false} tickLine={false} />
                   <RechartsTooltip 
-                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}
+                    contentStyle={{ borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
                     cursor={{ stroke: '#e2e8f0', strokeWidth: 2, strokeDasharray: '5 5' }}
                   />
-                </LineChart>
+                </AreaChart>
               </ResponsiveContainer>
             ) : (
               <div className="flex flex-col items-center justify-center h-full w-full text-slate-400">
@@ -172,20 +178,20 @@ export function LecturerPerformance() {
         </div>
 
         {/* Radar Chart */}
-        <div className="bg-white rounded-3xl p-6 md:p-8 shadow-[0_4px_24px_rgba(0,0,0,0.02)] border border-slate-200/60">
+        <div className="bg-white rounded-[2rem] p-6 md:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 hover:-translate-y-1 transition-all duration-300 min-w-0">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+            <h2 className="text-xl font-display font-bold text-slate-800 flex items-center gap-2">
               <BarChart2 className="w-5 h-5 text-emerald-500" />
               Criteria Breakdown
             </h2>
             <span className="text-xs font-semibold px-2.5 py-1 bg-emerald-50 text-emerald-600 rounded-lg">Current Term</span>
           </div>
-          <div className="h-[300px] w-full flex items-center justify-center">
+          <div className="h-[250px] sm:h-[300px] w-full flex items-center justify-center">
             {dynamicCriteria.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
-                <RadarChart cx="50%" cy="50%" outerRadius="70%" data={dynamicCriteria}>
+                <RadarChart cx="50%" cy="50%" outerRadius="65%" data={dynamicCriteria}>
                   <PolarGrid stroke="#e2e8f0" />
-                  <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748b', fontSize: 12, fontWeight: 500 }} />
+                  <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748b', fontSize: 11, fontWeight: 500 }} />
                   <PolarRadiusAxis angle={30} domain={[0, 5]} tick={false} axisLine={false} />
                   <Radar name="Score" dataKey="A" stroke="#10b981" strokeWidth={2} fill="#10b981" fillOpacity={0.2} />
                   <RechartsTooltip 
@@ -206,12 +212,12 @@ export function LecturerPerformance() {
       <div className="bg-white rounded-3xl p-6 md:p-8 shadow-[0_4px_24px_rgba(0,0,0,0.02)] border border-slate-200/60 relative">
         {isLoading && (
            <div className="absolute inset-0 bg-white/50 backdrop-blur-[1px] flex items-center justify-center z-10 rounded-3xl">
-             <Loader2 className="w-6 h-6 text-indigo-500 animate-spin" />
+             <Loader2 className="w-6 h-6 text-teal-500 animate-spin" />
            </div>
         )}
         <div className="flex items-center justify-between mb-8">
           <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-            <MessageSquare className="w-5 h-5 text-blue-500" />
+            <MessageSquare className="w-5 h-5 text-teal-500" />
             Qualitative Feedback Wall
           </h2>
           <span className="text-xs font-medium text-slate-500">Heavily Moderated & Anonymized</span>

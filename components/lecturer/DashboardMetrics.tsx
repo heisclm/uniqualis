@@ -12,7 +12,7 @@ export function DashboardMetrics({ averageRating, totalEvaluations, pendingRespo
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
       <div className="bg-white p-6 rounded-[1.5rem] border border-slate-100 shadow-sm flex items-center gap-5 transition-transform hover:scale-[1.02]">
-        <div className="w-14 h-14 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+        <div className="w-14 h-14 rounded-2xl bg-teal-50 text-teal-600 flex items-center justify-center shrink-0">
           <Star className="w-7 h-7 fill-current" />
         </div>
         <div>

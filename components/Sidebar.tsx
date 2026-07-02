@@ -54,24 +54,68 @@ export function Sidebar({
     }
   };
 
+  const getThemeClasses = () => {
+    switch(userRole) {
+      case 'STUDENT':
+        return {
+          sidebarBg: 'bg-emerald-950/95',
+          activeBtn: 'bg-emerald-700 text-white shadow-[0_4px_12px_rgba(4,120,87,0.25)] font-medium',
+          hoverIcon: 'group-hover:text-emerald-400',
+          roleBadge: 'text-emerald-300',
+          profileCard: 'bg-emerald-900/40 border-emerald-800/50 hover:bg-emerald-900/60',
+          divider: 'bg-emerald-800/50'
+        };
+      case 'LECTURER':
+        return {
+          sidebarBg: 'bg-slate-900/95', // Use dark slate instead of teal for background to keep it professional, accents in teal
+          activeBtn: 'bg-teal-600 text-white shadow-[0_4px_12px_rgba(13,148,136,0.25)] font-medium',
+          hoverIcon: 'group-hover:text-teal-400',
+          roleBadge: 'text-teal-400',
+          profileCard: 'bg-slate-800/50 border-slate-700/50 hover:bg-slate-800',
+          divider: 'bg-slate-800'
+        };
+      case 'OFFICIAL':
+        return {
+          sidebarBg: 'bg-emerald-950/95',
+          activeBtn: 'bg-emerald-600 text-white shadow-[0_4px_12px_rgba(5,150,105,0.25)] font-medium',
+          hoverIcon: 'group-hover:text-emerald-400',
+          roleBadge: 'text-emerald-300',
+          profileCard: 'bg-emerald-900/40 border-emerald-800/50 hover:bg-emerald-900/60',
+          divider: 'bg-emerald-800/50'
+        };
+      case 'ADMIN':
+      default:
+        return {
+          sidebarBg: 'bg-slate-900/95',
+          activeBtn: 'bg-emerald-600 text-white shadow-[0_4px_12px_rgba(37,99,235,0.25)] font-medium',
+          hoverIcon: 'group-hover:text-emerald-400',
+          roleBadge: 'text-emerald-400',
+          profileCard: 'bg-slate-800/50 border-slate-700/50 hover:bg-slate-800',
+          divider: 'bg-slate-800'
+        };
+    }
+  };
+
+  const theme = getThemeClasses();
+
   return (
-    <aside className={`w-[260px] bg-slate-900/80 backdrop-blur-2xl text-slate-300 h-screen fixed left-0 top-0 flex flex-col pt-8 pb-6 shadow-[4px_0_24px_rgba(0,0,0,0.1)] border-r border-white/5 z-40 transition-transform duration-300 ease-in-out lg:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+    <aside className={`w-[260px] ${theme.sidebarBg} backdrop-blur-2xl text-slate-300 h-screen fixed left-0 top-0 flex flex-col pt-8 pb-6 shadow-[4px_0_24px_rgba(0,0,0,0.15)] border-r border-white/5 z-40 transition-transform duration-300 ease-in-out lg:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
       {/* Brand Header */}
       <div className="flex items-center justify-between px-8 mb-10">
         <div className="flex items-center gap-3">
           <Image src="/logo.png" alt="UniQualis Logo" width={32} height={32} className="shrink-0" />
-          <span className="text-xl font-bold tracking-tight text-white">UniQualis</span>
+          <span className="text-xl font-bold tracking-tight text-white drop-shadow-sm">UniQualis</span>
         </div>
-        <button onClick={() => setIsOpen(false)} className="lg:hidden text-slate-400 hover:text-white">
+        <button onClick={() => setIsOpen(false)} className="lg:hidden text-slate-400 hover:text-white transition-colors">
           <X className="w-5 h-5" />
         </button>
       </div>
 
       {/* Profile Section */}
-      <div className="px-6 mb-8">
-        <div className="flex items-center justify-between bg-slate-800/50 p-3 rounded-2xl border border-slate-700/50 hover:bg-slate-800 transition-colors cursor-pointer group">
+      <div className="px-5 mb-8">
+        <div className={`flex items-center justify-between p-3 rounded-2xl border transition-all cursor-pointer group ${theme.profileCard}`}>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-slate-700 border border-slate-600 flex items-center justify-center text-white font-semibold shadow-inner shrink-0 overflow-hidden">
+            <div className="w-10 h-10 rounded-full bg-slate-800/80 border border-white/10 flex items-center justify-center text-white font-semibold shadow-inner shrink-0 overflow-hidden">
               {user?.profileImageUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={user.profileImageUrl} alt="Profile" className="w-full h-full object-cover" />
@@ -80,13 +124,13 @@ export function Sidebar({
               )}
             </div>
             <div className="flex flex-col overflow-hidden">
-              <span className="text-sm font-semibold text-white tracking-wide truncate">
+              <span className="text-sm font-bold text-white tracking-wide truncate">
                 {user ? `${user.firstName.charAt(0)}. ${user.lastName}` : "User Profile"}
               </span>
-              <span className="text-xs text-blue-400 font-medium truncate">{getRoleLabel()}</span>
+              <span className={`text-xs font-medium truncate ${theme.roleBadge}`}>{getRoleLabel()}</span>
             </div>
           </div>
-          <ArrowRight className="w-4 h-4 text-slate-500 group-hover:text-white transition-colors shrink-0" />
+          <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-white transition-colors shrink-0" />
         </div>
       </div>
 
@@ -103,11 +147,11 @@ export function Sidebar({
               }}
               className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-xl transition-all duration-200 group ${
                 isActive 
-                  ? "bg-blue-600 text-white shadow-[0_4px_12px_rgba(37,99,235,0.2)] font-medium" 
-                  : "text-slate-400 hover:bg-slate-800 hover:text-slate-200"
+                  ? theme.activeBtn 
+                  : "text-slate-400 hover:bg-white/10 hover:text-slate-100"
               }`}
             >
-              <div className={`${isActive ? "text-white" : "text-slate-400 group-hover:text-blue-400 transition-colors"}`}>
+              <div className={`${isActive ? "text-white" : `text-slate-400 ${theme.hoverIcon} transition-colors`}`}>
                 {item.icon}
               </div>
               <span className="text-sm tracking-wide">{item.label}</span>
@@ -118,13 +162,13 @@ export function Sidebar({
 
       {/* Logout */}
       <div className="px-4 mt-auto pt-4">
-        <div className="w-full h-px bg-slate-800 mb-4" />
+        <div className={`w-full h-px mb-4 ${theme.divider}`} />
         <button 
           onClick={handleLogout}
-          className="w-full flex items-center justify-between px-4 py-3 rounded-xl text-slate-400 hover:bg-red-500/10 hover:text-red-400 transition-all duration-200 group"
+          className="w-full flex items-center justify-between px-4 py-3 rounded-xl text-slate-400 hover:bg-red-500/15 hover:text-red-400 transition-all duration-200 group"
         >
           <div className="flex items-center gap-3.5">
-            <LogOut className="w-5 h-5 text-slate-500 group-hover:text-red-400 transition-colors" />
+            <LogOut className="w-5 h-5 text-slate-400 group-hover:text-red-400 transition-colors" />
             <span className="text-sm font-medium tracking-wide">Log Out</span>
           </div>
         </button>

@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
 
     const student = await prisma.user.findUnique({
       where: { id: studentId },
-      select: { studentLevel: true, studentFacultyId: true }
+      select: { studentLevel: true, studentDepartmentId: true }
     });
 
     let enrollments = await prisma.studentEnrollment.findMany({
@@ -42,49 +42,13 @@ export async function GET(req: NextRequest) {
       }
     });
 
-    // Auto-fetch courses if they don't have enrollments but have a level and faculty
-    if (enrollments.length === 0 && student?.studentLevel && student?.studentFacultyId) {
-      const availableCourses = await prisma.course.findMany({
-        where: {
-          level: student.studentLevel,
-          department: {
-            facultyId: student.studentFacultyId
-          }
-        },
-        include: {
-          department: true,
-          lecturers: {
-            include: {
-              lecturer: {
-                select: {
-                  id: true,
-                  firstName: true,
-                  lastName: true,
-                  profileImageUrl: true,
-                }
-              }
-            }
-          }
-        }
-      });
-      
-      // Simulate enrollments for the UI
-      enrollments = availableCourses.map(course => ({
-        id: `auto-${course.id}`,
-        studentId: studentId,
-        courseId: course.id,
-        course: course,
-        academicYear: "2026-2027",
-        semester: 1,
-        createdAt: new Date()
-      })) as any;
-    }
-
     // Fetch all evaluations submitted by this student via tokens
     const evaluationTokens = await prisma.evaluationToken.findMany({
       where: { studentId, isUsed: true },
       select: { courseLecturerId: true }
     });
+
+    const systemSetting = await prisma.systemSetting.findFirst();
 
     // Map through enrollments to determine evaluation status
     const coursesData = enrollments.map(enrollment => {
@@ -121,7 +85,8 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({
       courses: coursesData,
-      studentLevel: student?.studentLevel || null
+      studentLevel: student?.studentLevel || null,
+      systemSetting
     }, { status: 200 });
   } catch (error) {
     console.error("Failed to fetch student courses:", error);

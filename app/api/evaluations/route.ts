@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
     
     // Data Sanitization & Extraction
     const body = await req.json();
-    const { courseLecturerId, scaleRatings, qualitativeAnswers, token } = body;
+    const { courseLecturerId, scaleRatings, qualitativeAnswers, multipleChoiceAnswers, token } = body;
 
     if (!courseLecturerId || !scaleRatings || !token) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
@@ -115,6 +115,20 @@ export async function POST(req: NextRequest) {
         );
       }
       for (const [criterionId, text] of Object.entries(qualitativeAnswers || {})) {
+        if (criterionId === 'low_rating_feedback') continue;
+        if (text && (text as string).trim() !== "") {
+          responsePromises.push(
+            tx.evaluationResponse.create({
+              data: {
+                evaluationId: evalRecord.id,
+                criterionId,
+                text: (text as string).trim(),
+              }
+            })
+          );
+        }
+      }
+      for (const [criterionId, text] of Object.entries(multipleChoiceAnswers || {})) {
         if (text && (text as string).trim() !== "") {
           responsePromises.push(
             tx.evaluationResponse.create({

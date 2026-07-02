@@ -5,7 +5,7 @@ import { motion } from "motion/react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, LineChart, Line, AreaChart, Area, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from "recharts";
 import { Filter, Calendar, Download, RefreshCw, BarChart2, TrendingUp, Users, Target, Search, Loader2 } from "lucide-react";
 
-export function Analytics() {
+export function Analytics({ userRole = "OFFICIAL" }: { userRole?: string }) {
   const [timeframe, setTimeframe] = useState("5-years");
   const [isLoading, setIsLoading] = useState(true);
   const [analyticsData, setAnalyticsData] = useState<any>({
@@ -47,6 +47,12 @@ export function Analytics() {
     visible: { opacity: 1, y: 0, transition: { duration: 0.5 } }
   };
 
+  const themeMapping: Record<string, any> = {
+    ADMIN: { bg: "bg-emerald-600", bgHover: "hover:bg-emerald-700", text: "text-emerald-600", focus: "focus:ring-emerald-500/20 focus:border-emerald-500", focusBorder: "focus:border-emerald-500", shadow: "shadow-[0_4px_12px_rgba(37,99,235,0.2)]", activeBg: "bg-emerald-500/10 border-emerald-500/20 text-emerald-300" },
+    OFFICIAL: { bg: "bg-emerald-600", bgHover: "hover:bg-emerald-700", text: "text-emerald-600", focus: "focus:ring-emerald-500/20 focus:border-emerald-500", focusBorder: "focus:border-emerald-500", shadow: "shadow-[0_4px_12px_rgba(16,185,129,0.2)]", activeBg: "bg-emerald-500/10 border-emerald-500/20 text-emerald-300" },
+  };
+  const t = themeMapping[userRole] || themeMapping.OFFICIAL;
+
   // Safe fallback for UI rendering
   const yearlyData = analyticsData.yearlyData || [];
   const sentimentDistribution = analyticsData.sentimentDistribution || [];
@@ -69,7 +75,7 @@ export function Analytics() {
       {/* Header */}
       <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-2">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Strategic Analytics Hub</h1>
+          <h1 className="text-3xl font-display font-bold text-slate-900 tracking-tight">Strategic Analytics Hub</h1>
           <p className="text-sm text-slate-500 mt-1">Deep historical data exploration and performance strategy.</p>
         </div>
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto mt-4 sm:mt-0">
@@ -78,7 +84,7 @@ export function Analytics() {
             <input 
               type="text" 
               placeholder="Search metrics..." 
-              className="h-10 pl-9 pr-4 rounded-xl bg-white border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all w-full sm:w-64 shadow-[0_2px_8px_rgba(0,0,0,0.04)]"
+              className={`h-10 pl-9 pr-4 rounded-xl bg-white border border-slate-200 text-sm focus:outline-none focus:ring-2 ${t.focus} transition-all w-full sm:w-64 shadow-[0_2px_8px_rgba(0,0,0,0.04)]`}
             />
           </div>
           <div className="flex gap-3 w-full sm:w-auto">
@@ -86,7 +92,7 @@ export function Analytics() {
               <Filter className="w-4 h-4" />
               <span>Filters</span>
             </button>
-            <button className="flex-1 sm:flex-none h-10 px-4 rounded-xl bg-blue-600 flex items-center justify-center gap-2 text-white shadow-[0_4px_12px_rgba(37,99,235,0.2)] hover:bg-blue-700 transition-all font-medium text-sm whitespace-nowrap">
+            <button className={`flex-1 sm:flex-none h-10 px-4 rounded-xl ${t.bg} flex items-center justify-center gap-2 text-white ${t.shadow} ${t.bgHover} transition-all font-medium text-sm whitespace-nowrap active:scale-95`}>
               <Download className="w-4 h-4 shrink-0" />
               <span>Export Data</span>
             </button>
@@ -95,13 +101,13 @@ export function Analytics() {
       </motion.div>
 
       {/* Primary Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 min-w-0">
         {/* YoY Trends */}
-        <motion.div variants={itemVariants} className="bg-white rounded-3xl p-6 md:p-8 shadow-[0_4px_24px_rgba(0,0,0,0.02)] border border-slate-200/60 flex flex-col">
+        <motion.div variants={itemVariants} className="bg-white rounded-3xl p-6 md:p-8 shadow-[0_4px_24px_rgba(0,0,0,0.02)] border border-slate-200/60 flex flex-col min-w-0">
           <div className="flex justify-between items-center mb-8">
             <div>
-              <h3 className="text-lg font-semibold text-slate-900 tracking-tight flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-blue-600" />
+              <h3 className="text-xl font-display font-semibold text-slate-900 tracking-tight flex items-center gap-2">
+                <TrendingUp className={`w-5 h-5 ${t.text}`} />
                 Year-Over-Year Trajectory
               </h3>
               <p className="text-xs text-slate-500 mt-1">Holistic institutional performance trends.</p>
@@ -109,7 +115,7 @@ export function Analytics() {
             <select 
               value={timeframe}
               onChange={(e) => setTimeframe(e.target.value)}
-              className="bg-slate-50 border border-slate-200 text-slate-700 text-xs rounded-lg px-3 py-1.5 outline-none focus:border-blue-500 transition-colors"
+              className={`bg-slate-50 border border-slate-200 text-slate-700 text-xs rounded-lg px-3 py-1.5 outline-none ${t.focusBorder} transition-colors`}
             >
               <option value="1-year">Last Year</option>
               <option value="3-years">Last 3 Years</option>
@@ -193,7 +199,7 @@ export function Analytics() {
               {(analyticsData.semanticClusters || []).map((cluster: any, idx: number) => {
                 const colors = [
                   "bg-indigo-500/10 border-indigo-500/20 text-indigo-300",
-                  "bg-emerald-500/10 border-emerald-500/20 text-emerald-300",
+                  t.activeBg,
                   "bg-rose-500/10 border-rose-500/20 text-rose-300",
                   "bg-amber-500/10 border-amber-500/20 text-amber-300",
                   "bg-cyan-500/10 border-cyan-500/20 text-cyan-300"
@@ -213,12 +219,12 @@ export function Analytics() {
       </div>
 
       {/* Secondary Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 min-w-0">
         
         {/* Department Matrices */}
-        <motion.div variants={itemVariants} className="lg:col-span-1 bg-white rounded-3xl p-6 md:p-8 shadow-[0_4px_24px_rgba(0,0,0,0.02)] border border-slate-200/60">
+        <motion.div variants={itemVariants} className="lg:col-span-1 bg-white rounded-3xl p-6 md:p-8 shadow-[0_4px_24px_rgba(0,0,0,0.02)] border border-slate-200/60 min-w-0">
           <h3 className="text-lg font-semibold text-slate-900 tracking-tight flex items-center gap-2 mb-1">
-            <Target className="w-5 h-5 text-blue-600" />
+            <Target className={`w-5 h-5 ${t.text}`} />
             Capability Matrices
           </h3>
           <p className="text-xs text-slate-500 mb-6">Cross-departmental competency mapping.</p>
@@ -235,16 +241,16 @@ export function Analytics() {
             </ResponsiveContainer>
           </div>
           <div className="flex justify-center gap-4 mt-2">
-            <div className="flex items-center gap-2"><span className="w-3 h-3 rounded bg-blue-600 opacity-50"></span><span className="text-xs text-slate-600 font-medium">Department Performance (%)</span></div>
+            <div className="flex items-center gap-2"><span className={`w-3 h-3 rounded ${t.bg} opacity-50`}></span><span className="text-xs text-slate-600 font-medium">Department Performance (%)</span></div>
           </div>
         </motion.div>
 
         {/* Demographic Breakdown */}
-        <motion.div variants={itemVariants} className="lg:col-span-2 bg-white rounded-3xl p-6 md:p-8 shadow-[0_4px_24px_rgba(0,0,0,0.02)] border border-slate-200/60 flex flex-col">
+        <motion.div variants={itemVariants} className="lg:col-span-2 bg-white rounded-3xl p-6 md:p-8 shadow-[0_4px_24px_rgba(0,0,0,0.02)] border border-slate-200/60 flex flex-col min-w-0">
           <div className="flex justify-between items-center mb-8">
             <div>
               <h3 className="text-lg font-semibold text-slate-900 tracking-tight flex items-center gap-2">
-                <Users className="w-5 h-5 text-blue-600" />
+                <Users className={`w-5 h-5 ${t.text}`} />
                 Participation Demographics
               </h3>
               <p className="text-xs text-slate-500 mt-1">Evaluation response rates segmented by academic year.</p>
