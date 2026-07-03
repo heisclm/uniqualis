@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { FileText, CheckCircle, AlertTriangle, LayoutTemplate, Loader2, ArrowRight, Bell, Zap, Clock, ShieldCheck, Download } from "lucide-react";
 import { motion } from "motion/react";
 import toast from "react-hot-toast";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 interface MetricsData {
   totalEvaluations: number;
@@ -97,18 +99,37 @@ export function AdminDashboard({ onNavigate }: { onNavigate?: (view: string) => 
     try {
       const res = await fetch('/api/admin/reports/executive-summary');
       if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Failed to extract summary");
+        const errData = await res.json();
+        throw new Error(errData.error || "Failed to fetch summary data");
       }
+      const metrics = await res.json();
       
-      const blob = await res.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `executive-summary-${new Date().toISOString().split('T')[0]}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
+      const doc = new jsPDF();
+      doc.setFontSize(22);
+      doc.setTextColor(40, 40, 40);
+      doc.text("UniQualis Executive Summary", 14, 22);
+      
+      doc.setFontSize(11);
+      doc.setTextColor(100);
+      doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 30);
+      
+      autoTable(doc, {
+        startY: 40,
+        head: [['Metric', 'Total Count']],
+        body: [
+          ['Total Faculties', metrics.totalFaculties || 0],
+          ['Total Departments', metrics.totalDepartments || 0],
+          ['Total Courses', metrics.totalCourses || 0],
+          ['Total Users', metrics.totalUsers || 0],
+          ['Total Evaluations', metrics.totalEvaluations || 0],
+          ['Active Templates', metrics.activeTemplates || 0],
+        ],
+        theme: 'striped',
+        headStyles: { fillColor: [16, 185, 129] },
+        styles: { fontSize: 12, cellPadding: 6 },
+      });
+      
+      doc.save(`executive-summary-${new Date().toISOString().split('T')[0]}.pdf`);
       
       toast.success("Executive summary generated.", { id: toastId });
     } catch (err: any) {

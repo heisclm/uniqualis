@@ -99,7 +99,7 @@ export function Sidebar({
   const theme = getThemeClasses();
 
   return (
-    <aside className={`w-[260px] ${theme.sidebarBg} backdrop-blur-2xl text-slate-300 h-[100dvh] fixed left-0 top-0 flex flex-col pt-8 pb-6 shadow-[4px_0_24px_rgba(0,0,0,0.15)] border-r border-white/5 z-40 transition-transform duration-300 ease-in-out lg:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+    <aside className={`w-[260px] ${theme.sidebarBg} backdrop-blur-2xl text-slate-300 fixed inset-y-0 left-0 flex flex-col pt-6 pb-6 lg:pt-8 shadow-[4px_0_24px_rgba(0,0,0,0.15)] border-r border-white/5 z-40 transition-transform duration-300 ease-in-out lg:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
       {/* Brand Header */}
       <div className="flex items-center justify-between px-8 mb-10 shrink-0">
         <div className="flex items-center gap-3">

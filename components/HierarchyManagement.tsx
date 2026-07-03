@@ -548,7 +548,7 @@ export function HierarchyManagement() {
                   </div>
                   {errors.departmentId && <p className="text-[11px] font-semibold text-red-500 mt-1">{errors.departmentId}</p>}
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 gap-4">
                   <div className="col-span-1">
                     <label className="block text-xs font-semibold text-slate-900 uppercase tracking-wide mb-2">Code</label>
                     <input
@@ -562,20 +562,6 @@ export function HierarchyManagement() {
                       className={`w-full bg-slate-50/50 border ${errors.code ? 'border-red-500 ring-1 ring-red-500' : 'border-slate-200 focus:border-emerald-500 focus:ring-emerald-500/20'} text-slate-900 rounded-xl px-4 py-3 text-sm focus:bg-white focus:outline-none focus:ring-2 transition-all placeholder:text-slate-400 font-mono`}
                     />
                     {errors.code && <p className="text-[11px] font-semibold text-red-500 mt-1">{errors.code}</p>}
-                  </div>
-                  <div className="col-span-2">
-                    <label className="block text-xs font-semibold text-slate-900 uppercase tracking-wide mb-2">Title</label>
-                    <input
-                      type="text"
-                      value={newCourseTitle}
-                      onChange={(e) => {
-                        setNewCourseTitle(e.target.value);
-                        if (errors.title) setErrors(prev => ({ ...prev, title: "" }));
-                      }}
-                      placeholder="Algorithms"
-                      className={`w-full bg-slate-50/50 border ${errors.title ? 'border-red-500 ring-1 ring-red-500' : 'border-slate-200 focus:border-emerald-500 focus:ring-emerald-500/20'} text-slate-900 rounded-xl px-4 py-3 text-sm focus:bg-white focus:outline-none focus:ring-2 transition-all placeholder:text-slate-400`}
-                    />
-                    {errors.title && <p className="text-[11px] font-semibold text-red-500 mt-1">{errors.title}</p>}
                   </div>
                   <div className="col-span-1">
                     <label className="block text-xs font-semibold text-slate-900 uppercase tracking-wide mb-2">Level</label>
@@ -595,6 +581,20 @@ export function HierarchyManagement() {
                       <option value="500">500 Level</option>
                     </select>
                     {errors.level && <p className="text-[11px] font-semibold text-red-500 mt-1">{errors.level}</p>}
+                  </div>
+                  <div className="col-span-2">
+                    <label className="block text-xs font-semibold text-slate-900 uppercase tracking-wide mb-2">Title</label>
+                    <input
+                      type="text"
+                      value={newCourseTitle}
+                      onChange={(e) => {
+                        setNewCourseTitle(e.target.value);
+                        if (errors.title) setErrors(prev => ({ ...prev, title: "" }));
+                      }}
+                      placeholder="Algorithms"
+                      className={`w-full bg-slate-50/50 border ${errors.title ? 'border-red-500 ring-1 ring-red-500' : 'border-slate-200 focus:border-emerald-500 focus:ring-emerald-500/20'} text-slate-900 rounded-xl px-4 py-3 text-sm focus:bg-white focus:outline-none focus:ring-2 transition-all placeholder:text-slate-400`}
+                    />
+                    {errors.title && <p className="text-[11px] font-semibold text-red-500 mt-1">{errors.title}</p>}
                   </div>
                 </div>
                 <button type="submit" className="w-full py-3 bg-emerald-600 text-white rounded-xl font-medium shadow-[0_4px_12px_rgba(37,99,235,0.2)] hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2 mt-4">

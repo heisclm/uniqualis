@@ -9,6 +9,7 @@ interface Criterion {
   name: string;
   type: "scale" | "qualitative" | "multiple_choice";
   options?: string; // JSON string like '["Yes", "No"]'
+  rawOptions?: string;
   conditionalOnId?: string | null;
   conditionalOperator?: string | null;
   conditionalValue?: string | null;
@@ -407,10 +408,13 @@ export function EvaluationTemplates({ userRole: propUserRole = "ADMIN" }: { user
                         <label className="block text-xs font-semibold text-slate-500 uppercase mb-2">Options (Comma separated)</label>
                         <input
                           type="text"
-                          value={criterion.options ? JSON.parse(criterion.options).join(", ") : ""}
+                          value={criterion.rawOptions !== undefined ? criterion.rawOptions : (criterion.options ? JSON.parse(criterion.options).join(", ") : "")}
                           onChange={e => {
                             const val = e.target.value;
-                            updateCriterion(criterion.id, { options: JSON.stringify(val.split(",").map(s => s.trim()).filter(Boolean)) });
+                            updateCriterion(criterion.id, { 
+                              rawOptions: val,
+                              options: JSON.stringify(val.split(",").map(s => s.trim()).filter(Boolean))
+                            });
                           }}
                           placeholder="Yes, No, Maybe"
                           className="w-full h-9 px-3 rounded-lg border border-slate-200 text-sm focus:ring-2 focus:ring-slate-500/20 outline-none"
@@ -484,8 +488,23 @@ export function EvaluationTemplates({ userRole: propUserRole = "ADMIN" }: { user
                             </div>
                           ))}
                         </div>
+                      ) : c.type === "multiple_choice" ? (
+                        <div className="flex flex-col gap-2">
+                          {c.options && JSON.parse(c.options).length > 0 ? (
+                            JSON.parse(c.options).map((opt: string, idx: number) => (
+                              <div key={idx} className="flex items-center gap-2">
+                                <div className="w-4 h-4 rounded-full border border-slate-400" />
+                                <span className="text-sm text-slate-600">{opt}</span>
+                              </div>
+                            ))
+                          ) : (
+                            <div className="text-xs text-slate-400 italic">No options defined</div>
+                          )}
+                        </div>
                       ) : (
-                        <div className="w-full h-24 rounded-xl border border-slate-300 bg-white" />
+                        <div className="w-full h-24 rounded-xl border border-slate-300 bg-white flex items-start p-3 text-slate-400 text-sm">
+                          Text response area...
+                        </div>
                       )}
                     </div>
                   ))}
