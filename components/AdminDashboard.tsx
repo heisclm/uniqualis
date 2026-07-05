@@ -95,8 +95,9 @@ export function AdminDashboard({ onNavigate }: { onNavigate?: (view: string) => 
 
   const handleExtractSummary = async () => {
     setIsExtractingSummary(true);
-    const toastId = toast.loading("Generating executive summary...");
+    const toastId = toast.loading("Generating premium executive summary...");
     try {
+      // Fetch core metrics
       const res = await fetch('/api/admin/reports/executive-summary');
       if (!res.ok) {
         const errData = await res.json();
@@ -104,34 +105,162 @@ export function AdminDashboard({ onNavigate }: { onNavigate?: (view: string) => 
       }
       const metrics = await res.json();
       
+      // Fetch analytics for deeper insights
+      const analyticsRes = await fetch('/api/official/analytics?filter=1-year');
+      const analytics = analyticsRes.ok ? await analyticsRes.json() : null;
+
       const doc = new jsPDF();
-      doc.setFontSize(22);
-      doc.setTextColor(40, 40, 40);
-      doc.text("UniQualis Executive Summary", 14, 22);
+      const pageWidth = doc.internal.pageSize.width;
       
-      doc.setFontSize(11);
-      doc.setTextColor(100);
-      doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 30);
+      // 1. Cover Header
+      doc.setFillColor(16, 185, 129); // Emerald Green
+      doc.rect(0, 0, pageWidth, 40, 'F');
+      
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(28);
+      doc.setFont("helvetica", "bold");
+      doc.text("UniQualis", 14, 25);
+      
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "normal");
+      doc.text("Executive Summary & Quality Assurance Report", 14, 34);
+      
+      doc.setTextColor(60, 60, 60);
+      doc.setFontSize(10);
+      doc.text(`Generated on: ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}`, 14, 50);
+      doc.text("Prepared by: System Administrator", 14, 56);
+      
+      // 2. Executive Overview Section
+      doc.setFontSize(16);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(16, 185, 129);
+      doc.text("1. Institutional Overview", 14, 75);
       
       autoTable(doc, {
-        startY: 40,
-        head: [['Metric', 'Total Count']],
+        startY: 82,
+        head: [['Metric Category', 'Volume / Count', 'Status']],
         body: [
-          ['Total Faculties', metrics.totalFaculties || 0],
-          ['Total Departments', metrics.totalDepartments || 0],
-          ['Total Courses', metrics.totalCourses || 0],
-          ['Total Users', metrics.totalUsers || 0],
-          ['Total Evaluations', metrics.totalEvaluations || 0],
-          ['Active Templates', metrics.activeTemplates || 0],
+          ['Total Active Faculties', metrics.totalFaculties || 0, 'Operational'],
+          ['Academic Departments', metrics.totalDepartments || 0, 'Operational'],
+          ['Registered Courses', metrics.totalCourses || 0, 'Active'],
+          ['Total User Base', metrics.totalUsers || 0, 'Active'],
+          ['Evaluation Submissions', metrics.totalEvaluations || 0, 'Recorded'],
+          ['Active Frameworks', metrics.activeTemplates || 0, 'Deployed'],
         ],
-        theme: 'striped',
-        headStyles: { fillColor: [16, 185, 129] },
-        styles: { fontSize: 12, cellPadding: 6 },
+        theme: 'grid',
+        headStyles: { fillColor: [30, 41, 59], textColor: 255, fontStyle: 'bold' },
+        styles: { fontSize: 11, cellPadding: 8 },
+        alternateRowStyles: { fillColor: [248, 250, 252] },
       });
+
+      // 3. AI Sentiment & Qualitative Insights
+      if (analytics && analytics.sentimentDistribution) {
+        let finalY = (doc as any).lastAutoTable.finalY || 150;
+        
+        if (finalY > 220) {
+          doc.addPage();
+          finalY = 20;
+        } else {
+          finalY += 20;
+        }
+        
+        doc.setFontSize(16);
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(16, 185, 129);
+        doc.text("2. Sentiment Depth Analysis", 14, finalY);
+        
+        const sentimentData = analytics.sentimentDistribution.map((s: any) => [
+          s.type, 
+          `${s.value}%`, 
+          s.count?.toString() || '0'
+        ]);
+        
+        autoTable(doc, {
+          startY: finalY + 7,
+          head: [['Sentiment Classification', 'Distribution (%)', 'Volume']],
+          body: sentimentData,
+          theme: 'striped',
+          headStyles: { fillColor: [51, 65, 85], textColor: 255 },
+          styles: { fontSize: 11, cellPadding: 7 },
+        });
+
+        // 3b. Departmental Leaderboard
+        if (analytics.radarData && analytics.radarData.length > 0) {
+          let deptY = (doc as any).lastAutoTable.finalY + 20;
+          if (deptY > 250) {
+            doc.addPage();
+            deptY = 20;
+          }
+          
+          doc.setFontSize(16);
+          doc.setFont("helvetica", "bold");
+          doc.setTextColor(16, 185, 129);
+          doc.text("3. Departmental Performance Index", 14, deptY);
+          
+          const deptData = [...analytics.radarData]
+            .sort((a, b) => b.A - a.A)
+            .map((d: any, idx: number) => [
+              (idx + 1).toString(),
+              d.subject,
+              d.A + "%"
+            ]);
+          
+          autoTable(doc, {
+            startY: deptY + 7,
+            head: [['Rank', 'Academic Department', 'Performance Score']],
+            body: deptData,
+            theme: 'grid',
+            headStyles: { fillColor: [51, 65, 85], textColor: 255 },
+            styles: { fontSize: 11, cellPadding: 7 },
+          });
+        }
+
+        // 4. Strategic Semantic Clusters
+        if (analytics.semanticClusters && analytics.semanticClusters.length > 0) {
+          let clusterY = (doc as any).lastAutoTable.finalY + 20;
+          if (clusterY > 250) {
+            doc.addPage();
+            clusterY = 20;
+          }
+          
+          doc.setFontSize(16);
+          doc.setFont("helvetica", "bold");
+          doc.setTextColor(16, 185, 129);
+          doc.text("3. Key Semantic Themes Identified", 14, clusterY);
+          
+          const clusterData = analytics.semanticClusters.map((c: any) => [
+            c.name,
+            c.count.toString() + " Mentions"
+          ]);
+          
+          autoTable(doc, {
+            startY: clusterY + 7,
+            head: [['Identified Theme / Competency', 'Frequency']],
+            body: clusterData,
+            theme: 'plain',
+            headStyles: { fillColor: [241, 245, 249], textColor: [15, 23, 42] },
+            styles: { fontSize: 11, cellPadding: 7, lineColor: [226, 232, 240], lineWidth: 0.1 },
+          });
+        }
+      }
       
-      doc.save(`executive-summary-${new Date().toISOString().split('T')[0]}.pdf`);
+      // Footer
+      const pageCount = (doc as any).internal.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setTextColor(150);
+        doc.text(
+          `UniQualis Confidential & Proprietary - Page ${i} of ${pageCount}`, 
+          pageWidth / 2, 
+          doc.internal.pageSize.height - 10, 
+          { align: 'center' }
+        );
+      }
       
-      toast.success("Executive summary generated.", { id: toastId });
+      doc.save(`UniQualis_Executive_Summary_${new Date().toISOString().split('T')[0]}.pdf`);
+      
+      toast.success("Premium executive summary generated.", { id: toastId });
     } catch (err: any) {
       toast.error(err.message, { id: toastId });
     } finally {

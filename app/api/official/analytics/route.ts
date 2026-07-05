@@ -134,30 +134,59 @@ export async function GET(req: NextRequest) {
       };
     });
 
-    // Format Demographic Data Dynamically based on term evaluation volume
-    const termStats: Record<string, { total: number }> = {
-      "Fall": { total: 0 },
-      "Winter": { total: 0 },
-      "Spring": { total: 0 }
+    // Real Demographic Data based on used EvaluationTokens and student levels
+    const usedTokens = await prisma.evaluationToken.findMany({
+      where: {
+        isUsed: true,
+        usedAt: { gte: startDate },
+        courseLecturer: {
+          course: courseCondition
+        }
+      },
+      include: {
+        student: { select: { studentLevel: true } }
+      }
+    });
+
+    const termStats: Record<string, { freshmen: number, sophomores: number, juniors: number, seniors: number, total: number }> = {
+      "Fall": { freshmen: 0, sophomores: 0, juniors: 0, seniors: 0, total: 0 },
+      "Winter": { freshmen: 0, sophomores: 0, juniors: 0, seniors: 0, total: 0 },
+      "Spring": { freshmen: 0, sophomores: 0, juniors: 0, seniors: 0, total: 0 }
     };
 
-    evaluations.forEach(evalItem => {
-      const month = evalItem.academicDate.getMonth();
-      // Simple heuristic for terms: Fall (Aug-Dec), Winter (Jan-Mar), Spring (Apr-Jul)
-      if (month >= 7 && month <= 11) termStats["Fall"].total += 1;
-      else if (month >= 0 && month <= 2) termStats["Winter"].total += 1;
-      else termStats["Spring"].total += 1;
+    usedTokens.forEach(token => {
+      const date = token.usedAt || token.createdAt;
+      const month = date.getMonth();
+      let term = "Spring";
+      if (month >= 7 && month <= 11) term = "Fall";
+      else if (month >= 0 && month <= 2) term = "Winter";
+
+      termStats[term].total += 1;
+      const level = token.student?.studentLevel;
+      if (level === 100) termStats[term].freshmen += 1;
+      else if (level === 200) termStats[term].sophomores += 1;
+      else if (level === 300) termStats[term].juniors += 1;
+      else if (level === 400) termStats[term].seniors += 1;
     });
 
     const demographicData = Object.keys(termStats).map(term => {
-      const base = termStats[term].total || 10; // Avoid empty charts if 0
+      const stats = termStats[term];
+      const total = stats.freshmen + stats.sophomores + stats.juniors + stats.seniors;
+      if (total === 0) {
+        return {
+          term,
+          freshmen: 0,
+          sophomores: 0,
+          juniors: 0,
+          seniors: 0,
+        };
+      }
       return {
         term,
-        // Distribute proportionally (simulated as we don't have exact year levels in DB)
-        freshmen: Math.round(base * 0.3) + 50,
-        sophomores: Math.round(base * 0.25) + 40,
-        juniors: Math.round(base * 0.25) + 45,
-        seniors: Math.round(base * 0.2) + 55,
+        freshmen: Math.round((stats.freshmen / total) * 100),
+        sophomores: Math.round((stats.sophomores / total) * 100),
+        juniors: Math.round((stats.juniors / total) * 100),
+        seniors: Math.round((stats.seniors / total) * 100),
       };
     });
 

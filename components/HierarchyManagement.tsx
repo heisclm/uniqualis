@@ -256,7 +256,7 @@ export function HierarchyManagement() {
       setErrors({});
     } catch (err: any) {
       if (err instanceof z.ZodError) {
-        setErrors({ facultyName: err.errors[0].message });
+        setErrors({ facultyName: (err as any).errors[0].message });
         return;
       }
     }
@@ -286,7 +286,7 @@ export function HierarchyManagement() {
     } catch (err: any) {
       if (err instanceof z.ZodError) {
         const newErrs: Record<string, string> = {};
-        err.errors.forEach(e => {
+        (err as any).errors.forEach((e: any) => {
           if (e.path[0]) newErrs[e.path[0] as string] = e.message;
         });
         setErrors(newErrs);
@@ -320,7 +320,7 @@ export function HierarchyManagement() {
     } catch (err: any) {
       if (err instanceof z.ZodError) {
         const newErrs: Record<string, string> = {};
-        err.errors.forEach(e => {
+        (err as any).errors.forEach((e: any) => {
           if (e.path[0]) newErrs[e.path[0] as string] = e.message;
         });
         setErrors(newErrs);
@@ -356,7 +356,7 @@ export function HierarchyManagement() {
     } catch (err: any) {
       if (err instanceof z.ZodError) {
         const newErrs: Record<string, string> = {};
-        err.errors.forEach(e => {
+        (err as any).errors.forEach((e: any) => {
           if (e.path[0]) newErrs[e.path[0] as string] = e.message;
         });
         setErrors(newErrs);
