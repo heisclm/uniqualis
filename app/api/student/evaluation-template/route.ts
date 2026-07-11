@@ -17,35 +17,105 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const departmentId = searchParams.get("departmentId");
 
-    let template = null;
+    // -----------------------------------------------------------------------
+    // BASE + SUPPLEMENT MODEL:
+    // 1. Fetch the single active CORE template (institution-wide, locked by admin)
+    // 2. Fetch the active SUPPLEMENT template for this department (if any)
+    // 3. Merge criteria: Core first, then Supplement — seamless for students
+    // -----------------------------------------------------------------------
 
+    // Step 1: Find active CORE template
+    const coreTemplate = await prisma.evaluationTemplate.findFirst({
+      where: {
+        templateType: "CORE",
+        status: "ACTIVE",
+        departmentId: null
+      },
+      include: {
+        criteria: { orderBy: { order: "asc" } }
+      },
+      orderBy: { createdAt: "desc" }
+    });
+
+    // Step 2: Find active SUPPLEMENT for the department
+    let supplementTemplate = null;
     if (departmentId) {
-      // Try to find an active template for this department
-      template = await prisma.evaluationTemplate.findFirst({
+      supplementTemplate = await prisma.evaluationTemplate.findFirst({
         where: {
-          departmentId: departmentId,
-          status: "ACTIVE"
+          templateType: "SUPPLEMENT",
+          status: "ACTIVE",
+          departmentId
         },
         include: {
-          criteria: true
-        }
+          criteria: { orderBy: { order: "asc" } }
+        },
+        orderBy: { createdAt: "desc" }
       });
     }
 
-    // Fallback to institution-wide active template
+    // Step 3: Merge if we have a CORE template
+    if (coreTemplate) {
+      const coreCriteria = coreTemplate.criteria.map((c: any) => ({
+        ...c,
+        source: "core" // tag so we know origin (not sent to student, internal metadata)
+      }));
+
+      const supplementCriteria = supplementTemplate
+        ? supplementTemplate.criteria.map((c: any) => ({
+            ...c,
+            source: "supplement"
+          }))
+        : [];
+
+      // Re-sequence order: core first (0..n), then supplement (n+1..)
+      const mergedCriteria = [
+        ...coreCriteria.map((c: any, i: number) => ({ ...c, order: i })),
+        ...supplementCriteria.map((c: any, i: number) => ({
+          ...c,
+          order: coreCriteria.length + i
+        }))
+      ];
+
+      const mergedTemplate = {
+        id: coreTemplate.id,
+        name: coreTemplate.name,
+        templateType: "MERGED",
+        criteria: mergedCriteria,
+        // Indicate supplement was attached
+        hasSupplementFrom: supplementTemplate ? supplementTemplate.name : null
+      };
+
+      return NextResponse.json({ template: mergedTemplate }, { status: 200 });
+    }
+
+    // -----------------------------------------------------------------------
+    // LEGACY FALLBACK: Standard (non-CORE) templates (backward compatibility)
+    // -----------------------------------------------------------------------
+    let template = null;
+
+    if (departmentId) {
+      template = await prisma.evaluationTemplate.findFirst({
+        where: {
+          departmentId,
+          status: "ACTIVE",
+          templateType: "STANDARD"
+        },
+        include: { criteria: { orderBy: { order: "asc" } } }
+      });
+    }
+
     if (!template) {
       template = await prisma.evaluationTemplate.findFirst({
         where: {
           departmentId: null,
-          status: "ACTIVE"
+          status: "ACTIVE",
+          templateType: "STANDARD"
         },
-        include: {
-          criteria: true
-        }
+        include: { criteria: { orderBy: { order: "asc" } } }
       });
     }
 
-    // If still no template, create a default one or just return empty
+    // If still nothing found, use the hardcoded default
     if (!template) {
       const defaultTemplate = {
         id: "default",

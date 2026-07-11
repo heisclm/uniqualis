@@ -148,39 +148,54 @@ export async function GET(req: NextRequest) {
       }
     });
 
-    const termStats: Record<string, { freshmen: number, sophomores: number, juniors: number, seniors: number, total: number }> = {
-      "Fall": { freshmen: 0, sophomores: 0, juniors: 0, seniors: 0, total: 0 },
-      "Winter": { freshmen: 0, sophomores: 0, juniors: 0, seniors: 0, total: 0 },
-      "Spring": { freshmen: 0, sophomores: 0, juniors: 0, seniors: 0, total: 0 }
+    // -----------------------------------------------------------------------
+    // DYNAMIC TERM BUCKETING
+    // Derive terms from actual token usedAt dates instead of hardcoding
+    // Fall:   Aug–Nov  (months 7–10)
+    // Spring: Mar–Jun  (months 2–5)
+    // Winter: Dec–Feb  (months 11, 0–1)
+    // Summer: Jul      (month 6)
+    // Only include terms that actually have data
+    // -----------------------------------------------------------------------
+
+    const getTermLabel = (month: number): string => {
+      if (month >= 7 && month <= 10) return "Fall";
+      if (month >= 2 && month <= 5) return "Spring";
+      if (month === 6) return "Summer";
+      return "Winter"; // Dec (11), Jan (0), Feb (1)
     };
+
+    // Build term stats dynamically from real data
+    const dynamicTermStats: Record<string, { freshmen: number; sophomores: number; juniors: number; seniors: number; other: number; total: number }> = {};
 
     usedTokens.forEach(token => {
       const date = token.usedAt || token.createdAt;
       const month = date.getMonth();
-      let term = "Spring";
-      if (month >= 7 && month <= 11) term = "Fall";
-      else if (month >= 0 && month <= 2) term = "Winter";
+      const term = getTermLabel(month);
 
-      termStats[term].total += 1;
+      if (!dynamicTermStats[term]) {
+        dynamicTermStats[term] = { freshmen: 0, sophomores: 0, juniors: 0, seniors: 0, other: 0, total: 0 };
+      }
+
+      dynamicTermStats[term].total += 1;
       const level = token.student?.studentLevel;
-      if (level === 100) termStats[term].freshmen += 1;
-      else if (level === 200) termStats[term].sophomores += 1;
-      else if (level === 300) termStats[term].juniors += 1;
-      else if (level === 400) termStats[term].seniors += 1;
+      if (level === 100) dynamicTermStats[term].freshmen += 1;
+      else if (level === 200) dynamicTermStats[term].sophomores += 1;
+      else if (level === 300) dynamicTermStats[term].juniors += 1;
+      else if (level === 400) dynamicTermStats[term].seniors += 1;
+      else dynamicTermStats[term].other += 1;
     });
 
-    const demographicData = Object.keys(termStats).map(term => {
-      const stats = termStats[term];
-      const total = stats.freshmen + stats.sophomores + stats.juniors + stats.seniors;
-      if (total === 0) {
-        return {
-          term,
-          freshmen: 0,
-          sophomores: 0,
-          juniors: 0,
-          seniors: 0,
-        };
-      }
+    // Order terms canonically
+    const termOrder = ["Spring", "Summer", "Fall", "Winter"];
+    const sortedTermKeys = Object.keys(dynamicTermStats).sort(
+      (a, b) => termOrder.indexOf(a) - termOrder.indexOf(b)
+    );
+
+    const demographicData = sortedTermKeys.map(term => {
+      const stats = dynamicTermStats[term];
+      const total = stats.freshmen + stats.sophomores + stats.juniors + stats.seniors + stats.other;
+      if (total === 0) return { term, freshmen: 0, sophomores: 0, juniors: 0, seniors: 0 };
       return {
         term,
         freshmen: Math.round((stats.freshmen / total) * 100),

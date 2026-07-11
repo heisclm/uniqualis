@@ -266,8 +266,9 @@ model EvaluationTemplate {
   id           String      @id @default(uuid())
   name         String
   description  String?
-  status       String      @default("DRAFT") // DRAFT, PUBLISHED, ARCHIVED
-  departmentId String?     // null means institution-wide
+  status       String      @default("DRAFT") // DRAFT, ACTIVE, ARCHIVED
+  templateType String      @default("STANDARD") // STANDARD | CORE | SUPPLEMENT
+  departmentId String?     // null means institution-wide (used for CORE/STANDARD); set for SUPPLEMENT
   department   Department? @relation(fields: [departmentId], references: [id])
   criteria     Criterion[]
   createdAt    DateTime    @default(now())
