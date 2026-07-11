@@ -24,7 +24,17 @@ export function TopBar({
 }) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const notificationRef = useRef<HTMLDivElement>(null);
+
+  // Detect scroll on the nearest scrollable ancestor (the content div)
+  useEffect(() => {
+    const scrollable = document.querySelector('main > div');
+    if (!scrollable) return;
+    const onScroll = () => setIsScrolled(scrollable.scrollTop > 8);
+    scrollable.addEventListener('scroll', onScroll, { passive: true });
+    return () => scrollable.removeEventListener('scroll', onScroll);
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -123,7 +133,20 @@ export function TopBar({
   const theme = getThemeColor();
 
   return (
-    <header className="flex items-center justify-between px-4 md:px-6 lg:px-8 py-4 bg-white/70 backdrop-blur-xl border-b border-white/50 shadow-[0_4px_30px_rgb(0,0,0,0.02)] sticky top-0 z-30 gap-3 sm:gap-4 w-full transition-all duration-300">
+    <header
+      className={`
+        flex items-center justify-between
+        px-4 md:px-6 lg:px-8 py-4
+        sticky top-0 z-30
+        w-full gap-3 sm:gap-4
+        transition-all duration-300 ease-in-out
+        ${
+          isScrolled
+            ? 'bg-white/90 backdrop-blur-2xl border-b border-slate-200/70 shadow-[0_1px_20px_rgba(0,0,0,0.08)]'
+            : 'bg-white/60 backdrop-blur-xl border-b border-white/50 shadow-[0_4px_30px_rgb(0,0,0,0.02)]'
+        }
+      `}
+    >
       
       <div className="flex items-center gap-2 md:gap-4 min-w-0 flex-1">
         {/* Mobile Menu Button */}

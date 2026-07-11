@@ -108,7 +108,7 @@ export function DashboardLayout({ userRole }: DashboardLayoutProps) {
         />
       )}
       
-      <main className="flex-1 lg:ml-[260px] min-h-screen flex flex-col w-full">
+      <main className="flex-1 lg:ml-[260px] h-screen flex flex-col w-full overflow-hidden">
         <TopBar 
           toggleSidebar={toggleSidebar} 
           currentView={currentView}
@@ -117,7 +117,7 @@ export function DashboardLayout({ userRole }: DashboardLayoutProps) {
           user={user}
         />
         
-        <div className="flex-1 overflow-x-hidden">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden">
           {/* Admin Dashboards */}
           {currentView === "dashboard" && userRole === "ADMIN" && <AdminDashboard />}
           {currentView === "analytics" && userRole === "ADMIN" && <Analytics userRole={userRole} />}
