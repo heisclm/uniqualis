@@ -267,24 +267,10 @@ export function Analytics({ userRole = "OFFICIAL" }: { userRole?: string }) {
                   cursor={{ fill: '#f8fafc' }}
                   contentStyle={{ borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
                 />
-                {demographicData.length > 0 && 
-                  Object.keys(demographicData[0])
-                    .filter(key => key !== "term")
-                    .map((key, idx) => {
-                      const levelColors: Record<string, string> = {
-                        freshmen: "#93c5fd",
-                        sophomores: "#60a5fa",
-                        juniors: "#3b82f6",
-                        seniors: "#1d4ed8",
-                      };
-                      const fallbackColors = ["#a78bfa", "#34d399", "#f59e0b", "#f87171", "#2dd4bf"];
-                      const fill = levelColors[key] ?? fallbackColors[idx % fallbackColors.length];
-                      const label = key.charAt(0).toUpperCase() + key.slice(1) + " %";
-                      return (
-                        <Bar key={key} dataKey={key} name={label} fill={fill} radius={[4, 4, 0, 0]} />
-                      );
-                    })
-                }
+                <Bar dataKey="freshmen" name="Freshmen %" fill="#93c5fd" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="sophomores" name="Sophomores %" fill="#60a5fa" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="juniors" name="Juniors %" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="seniors" name="Seniors %" fill="#1d4ed8" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
