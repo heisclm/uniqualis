@@ -53,13 +53,25 @@ export async function GET(req: NextRequest) {
     }
 
     // ── Resolve which department(s) this Official manages ──────────────────
-    // Case A: Official is assigned directly to a department
+    // Case A: Official is assigned directly to a department (HOD-level)
     // Case B: Official is assigned to a faculty (dean-level) — they manage all depts in that faculty
     let officialDeptIds: string[] = [];
+    let userFacultyId: string | null = null;
+    let userFacultyName: string | null = null;
 
     if (user?.officialDepartmentId) {
       officialDeptIds = [user.officialDepartmentId];
     } else if (user?.officialFacultyId) {
+      userFacultyId = user.officialFacultyId;
+
+      // Fetch the faculty name for display in the UI
+      const faculty = await prisma.faculty.findUnique({
+        where: { id: user.officialFacultyId },
+        select: { id: true, name: true }
+      });
+      userFacultyName = faculty?.name || null;
+
+      // Collect all department IDs under this faculty
       officialDeptIds = departments
         .filter(d => d.facultyId === user.officialFacultyId)
         .map(d => d.id);
@@ -90,9 +102,10 @@ export async function GET(req: NextRequest) {
       supplementTemplates,
       departments,
       userRole: role,
-      // Primary department for auto-selection
+      // Scope metadata — tells the frontend whether to show "Faculty" or "Department"
+      userFacultyId,
+      userFacultyName,
       userDepartmentId: primaryDeptId,
-      // Full list so the dropdown shows all managed departments
       userDepartmentIds: officialDeptIds
     });
 

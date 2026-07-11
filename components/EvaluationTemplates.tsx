@@ -45,6 +45,12 @@ export function EvaluationTemplates({ userRole: propUserRole = "ADMIN" }: { user
   const [userDepartmentId, setUserDepartmentId] = useState<string | null>(null);
   // All department IDs this official manages (could be one direct dept or all faculty depts)
   const [userDepartmentIds, setUserDepartmentIds] = useState<string[]>([]);
+  // Faculty info — set when official is faculty-scoped (dean/faculty-level)
+  const [userFacultyId, setUserFacultyId] = useState<string | null>(null);
+  const [userFacultyName, setUserFacultyName] = useState<string | null>(null);
+
+  // Convenience: true when official is faculty-level (not department-level)
+  const isFacultyScoped = !!userFacultyId && !userDepartmentId;
 
   // ── helpers ────────────────────────────────────────────────────────────────
   const isCore = (t: Template) => t.departmentId === null || t.departmentId === "ALL";
@@ -79,6 +85,8 @@ export function EvaluationTemplates({ userRole: propUserRole = "ADMIN" }: { user
         if (data.userRole) setUserRole(data.userRole);
         if (data.userDepartmentId) setUserDepartmentId(data.userDepartmentId);
         if (data.userDepartmentIds?.length) setUserDepartmentIds(data.userDepartmentIds);
+        if (data.userFacultyId) setUserFacultyId(data.userFacultyId);
+        if (data.userFacultyName) setUserFacultyName(data.userFacultyName);
         if (depts.length) setDepartments(depts);
 
         // Admin gets coreTemplates + supplementTemplates from API
@@ -151,27 +159,53 @@ export function EvaluationTemplates({ userRole: propUserRole = "ADMIN" }: { user
     if (!builderState.name) return;
     try {
       setIsSaving(true);
-      const url    = builderState.id ? `/api/official/templates/${builderState.id}` : `/api/official/templates`;
-      const method = builderState.id ? "PUT" : "POST";
-      const res    = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(builderState)
-      });
-      if (res.ok) {
-        await fetchTemplates();
-        setActiveTab("list");
-        setBuilderState({ name: "", departmentId: "ALL", status: "DRAFT", criteria: [] });
+
+      const isNew = !builderState.id;
+
+      // Faculty-scoped officials creating a NEW supplement:
+      // Create one copy per department in their faculty so all dept students benefit.
+      if (isNew && isFacultyScoped && userDepartmentIds.length > 0) {
+        const results = await Promise.all(
+          userDepartmentIds.map(deptId =>
+            fetch("/api/official/templates", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ ...builderState, departmentId: deptId })
+            })
+          )
+        );
+        const failed = results.find(r => !r.ok);
+        if (failed) {
+          const err = await failed.json();
+          alert(err.error || "Failed to save template.");
+          return;
+        }
       } else {
-        const err = await res.json();
-        alert(err.error || "Failed to save template.");
+        // Department-scoped official or Admin, or editing an existing template
+        const url    = builderState.id ? `/api/official/templates/${builderState.id}` : `/api/official/templates`;
+        const method = builderState.id ? "PUT" : "POST";
+        const res    = await fetch(url, {
+          method,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(builderState)
+        });
+        if (!res.ok) {
+          const err = await res.json();
+          alert(err.error || "Failed to save template.");
+          return;
+        }
       }
+
+      await fetchTemplates();
+      setActiveTab("list");
+      setBuilderState({ name: "", departmentId: "ALL", status: "DRAFT", criteria: [] });
     } catch (error) {
       console.error("Error saving template:", error);
     } finally {
       setIsSaving(false);
     }
   };
+
 
   const editTemplate = (template: Template) => {
     setBuilderState(template);
@@ -507,7 +541,11 @@ export function EvaluationTemplates({ userRole: propUserRole = "ADMIN" }: { user
               <div className="flex items-start gap-3 p-3 rounded-xl bg-violet-50 border border-violet-200 text-xs text-violet-700">
                 <Layers className="w-4 h-4 shrink-0 mt-0.5 text-violet-500" />
                 <span>
-                  You are creating a <strong>Departmental Supplement</strong>. These questions are appended after the Core template questions when students evaluate a course.
+                  You are creating a <strong>Supplement</strong> for
+                  {isFacultyScoped
+                    ? <> the <strong>{userFacultyName}</strong> Faculty</>
+                    : " your department"
+                  }. These questions are appended after the Core template questions when students evaluate a course.
                 </span>
               </div>
             )}
@@ -534,34 +572,57 @@ export function EvaluationTemplates({ userRole: propUserRole = "ADMIN" }: { user
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Target Department</label>
-              <select
-                value={builderState.departmentId || "ALL"}
-                onChange={e => setBuilderState({...builderState, departmentId: e.target.value})}
-                className={`w-full h-11 px-4 rounded-xl border border-slate-200 text-sm ${t.focus} outline-none transition-all shadow-sm bg-white`}
-                disabled={userRole === "OFFICIAL"}
-              >
-                {userRole !== "OFFICIAL" && (
-                  <option value="ALL">All Departments (Core — Institution-Wide)</option>
-                )}
-
-                {userRole === "OFFICIAL" ? (
-                  // Show ONLY the departments this official actually manages
-                  departments
-                    .filter(d => userDepartmentIds.includes(d.id))
-                    .map(dept => (
-                      <option key={dept.id} value={dept.id}>{dept.name}</option>
-                    ))
+              {/* ── Scope field: Faculty (for dean-level) or Department (for HOD-level) ── */}
+              {userRole === "OFFICIAL" ? (
+                isFacultyScoped ? (
+                  // Faculty-scoped official → show Faculty name, read-only
+                  <>
+                    <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Target Faculty</label>
+                    <div className={`w-full h-11 px-4 rounded-xl border border-slate-200 text-sm bg-slate-100 text-slate-600 flex items-center gap-2`}>
+                      <span className="text-slate-400">🏛️</span>
+                      <span className="font-medium">{userFacultyName || "—"}</span>
+                      <span className="ml-auto text-[10px] text-slate-400 uppercase tracking-wide">Auto</span>
+                    </div>
+                    <p className="text-[10px] text-slate-400 mt-1.5">Automatically set to your faculty. The supplement applies to all departments within it.</p>
+                  </>
                 ) : (
-                  departments.map(dept => (
-                    <option key={dept.id} value={dept.id}>{dept.name} (Supplement)</option>
-                  ))
-                )}
-
-                {userRole === "OFFICIAL" && userDepartmentIds.length === 0 && (
-                  <option value="" disabled>No department assigned — contact Admin</option>
-                )}
-              </select>
+                  // Department-scoped official → show dept dropdown
+                  <>
+                    <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Target Department</label>
+                    <select
+                      value={builderState.departmentId || ""}
+                      onChange={e => setBuilderState({...builderState, departmentId: e.target.value})}
+                      className={`w-full h-11 px-4 rounded-xl border border-slate-200 text-sm ${t.focus} outline-none transition-all shadow-sm bg-white`}
+                      disabled={userDepartmentIds.length <= 1}
+                    >
+                      {departments
+                        .filter(d => userDepartmentIds.includes(d.id))
+                        .map(dept => (
+                          <option key={dept.id} value={dept.id}>{dept.name}</option>
+                        ))
+                      }
+                      {userDepartmentIds.length === 0 && (
+                        <option value="" disabled>No department assigned — contact Admin</option>
+                      )}
+                    </select>
+                  </>
+                )
+              ) : (
+                // Admin → show full department/scope selector
+                <>
+                  <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Target Scope</label>
+                  <select
+                    value={builderState.departmentId || "ALL"}
+                    onChange={e => setBuilderState({...builderState, departmentId: e.target.value})}
+                    className={`w-full h-11 px-4 rounded-xl border border-slate-200 text-sm ${t.focus} outline-none transition-all shadow-sm bg-white`}
+                  >
+                    <option value="ALL">All Departments (Core — Institution-Wide)</option>
+                    {departments.map(dept => (
+                      <option key={dept.id} value={dept.id}>{dept.name} (Supplement)</option>
+                    ))}
+                  </select>
+                </>
+              )}
             </div>
 
             <div>
