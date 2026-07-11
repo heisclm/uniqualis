@@ -190,7 +190,7 @@ export async function GET(req: NextRequest) {
       .map(term => {
         const b = termBuckets[term];
         const total = b.freshmen + b.sophomores + b.juniors + b.seniors + b.other;
-        if (total === 0) return { term, freshmen: 0, sophomores: 0, juniors: 0, seniors: 0 };
+        if (total === 0) return null; // skip — no data for this term
         return {
           term,
           freshmen:   Math.round((b.freshmen   / total) * 100),
@@ -198,7 +198,8 @@ export async function GET(req: NextRequest) {
           juniors:    Math.round((b.juniors    / total) * 100),
           seniors:    Math.round((b.seniors    / total) * 100),
         };
-      });
+      })
+      .filter(Boolean); // remove nulls
 
     return NextResponse.json({
       yearlyData,

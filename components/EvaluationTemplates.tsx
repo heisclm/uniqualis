@@ -43,6 +43,8 @@ export function EvaluationTemplates({ userRole: propUserRole = "ADMIN" }: { user
   const [departments, setDepartments] = useState<{id: string, name: string}[]>([]);
   const [userRole, setUserRole] = useState<string>(propUserRole);
   const [userDepartmentId, setUserDepartmentId] = useState<string | null>(null);
+  // All department IDs this official manages (could be one direct dept or all faculty depts)
+  const [userDepartmentIds, setUserDepartmentIds] = useState<string[]>([]);
 
   // ── helpers ────────────────────────────────────────────────────────────────
   const isCore = (t: Template) => t.departmentId === null || t.departmentId === "ALL";
@@ -76,6 +78,7 @@ export function EvaluationTemplates({ userRole: propUserRole = "ADMIN" }: { user
 
         if (data.userRole) setUserRole(data.userRole);
         if (data.userDepartmentId) setUserDepartmentId(data.userDepartmentId);
+        if (data.userDepartmentIds?.length) setUserDepartmentIds(data.userDepartmentIds);
         if (depts.length) setDepartments(depts);
 
         // Admin gets coreTemplates + supplementTemplates from API
@@ -398,10 +401,14 @@ export function EvaluationTemplates({ userRole: propUserRole = "ADMIN" }: { user
 
             <button
               onClick={() => {
+                // For Officials: always resolve to their primary department — never "ALL"
+                const deptId = userRole === "OFFICIAL"
+                  ? (userDepartmentId || userDepartmentIds[0] || "")
+                  : "ALL";
                 setBuilderState({
                   id: "",
                   name: "",
-                  departmentId: userRole === "OFFICIAL" ? (userDepartmentId || "ALL") : "ALL",
+                  departmentId: deptId,
                   status: "DRAFT",
                   criteria: []
                 });
@@ -539,17 +546,20 @@ export function EvaluationTemplates({ userRole: propUserRole = "ADMIN" }: { user
                 )}
 
                 {userRole === "OFFICIAL" ? (
-                  departments.filter(d => d.id === userDepartmentId).map(dept => (
-                    <option key={dept.id} value={dept.id}>{dept.name}</option>
-                  ))
+                  // Show ONLY the departments this official actually manages
+                  departments
+                    .filter(d => userDepartmentIds.includes(d.id))
+                    .map(dept => (
+                      <option key={dept.id} value={dept.id}>{dept.name}</option>
+                    ))
                 ) : (
                   departments.map(dept => (
                     <option key={dept.id} value={dept.id}>{dept.name} (Supplement)</option>
                   ))
                 )}
 
-                {userRole === "OFFICIAL" && !userDepartmentId && (
-                  <option value="ALL" disabled>No department assigned</option>
+                {userRole === "OFFICIAL" && userDepartmentIds.length === 0 && (
+                  <option value="" disabled>No department assigned — contact Admin</option>
                 )}
               </select>
             </div>
