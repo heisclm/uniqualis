@@ -148,47 +148,57 @@ export async function GET(req: NextRequest) {
       }
     });
 
-    const termStats: Record<string, { freshmen: number, sophomores: number, juniors: number, seniors: number, total: number }> = {
-      "Fall": { freshmen: 0, sophomores: 0, juniors: 0, seniors: 0, total: 0 },
-      "Winter": { freshmen: 0, sophomores: 0, juniors: 0, seniors: 0, total: 0 },
-      "Spring": { freshmen: 0, sophomores: 0, juniors: 0, seniors: 0, total: 0 }
+    // ── DYNAMIC TERM BUCKETING ───────────────────────────────────────────────
+    // We derive academic terms purely from real submission dates.
+    // Only terms that have actual data will appear in the result.
+    //   Spring : Mar – Jun  (months 2–5)
+    //   Summer : Jul        (month 6)
+    //   Fall   : Aug – Nov  (months 7–10)
+    //   Winter : Dec – Feb  (months 11, 0, 1)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    const getAcademicTerm = (month: number): string => {
+      if (month >= 2 && month <= 5) return "Spring";
+      if (month === 6)              return "Summer";
+      if (month >= 7 && month <= 10) return "Fall";
+      return "Winter"; // Dec(11), Jan(0), Feb(1)
     };
 
-    usedTokens.forEach(token => {
-      const date = token.usedAt || token.createdAt;
-      const month = date.getMonth();
-      let term = "Spring";
-      if (month >= 7 && month <= 11) term = "Fall";
-      else if (month >= 0 && month <= 2) term = "Winter";
+    // Build buckets only for terms that actually appear in the data
+    const termBuckets: Record<string, { freshmen: number; sophomores: number; juniors: number; seniors: number; other: number }> = {};
 
-      termStats[term].total += 1;
+    usedTokens.forEach(token => {
+      const date  = token.usedAt || token.createdAt;
+      const term  = getAcademicTerm(date.getMonth());
+
+      if (!termBuckets[term]) {
+        termBuckets[term] = { freshmen: 0, sophomores: 0, juniors: 0, seniors: 0, other: 0 };
+      }
+
       const level = token.student?.studentLevel;
-      if (level === 100) termStats[term].freshmen += 1;
-      else if (level === 200) termStats[term].sophomores += 1;
-      else if (level === 300) termStats[term].juniors += 1;
-      else if (level === 400) termStats[term].seniors += 1;
+      if      (level === 100) termBuckets[term].freshmen   += 1;
+      else if (level === 200) termBuckets[term].sophomores += 1;
+      else if (level === 300) termBuckets[term].juniors    += 1;
+      else if (level === 400) termBuckets[term].seniors    += 1;
+      else                    termBuckets[term].other      += 1;
     });
 
-    const demographicData = Object.keys(termStats).map(term => {
-      const stats = termStats[term];
-      const total = stats.freshmen + stats.sophomores + stats.juniors + stats.seniors;
-      if (total === 0) {
+    // Sort in canonical academic-calendar order
+    const termOrder = ["Spring", "Summer", "Fall", "Winter"];
+    const demographicData = Object.keys(termBuckets)
+      .sort((a, b) => termOrder.indexOf(a) - termOrder.indexOf(b))
+      .map(term => {
+        const b = termBuckets[term];
+        const total = b.freshmen + b.sophomores + b.juniors + b.seniors + b.other;
+        if (total === 0) return { term, freshmen: 0, sophomores: 0, juniors: 0, seniors: 0 };
         return {
           term,
-          freshmen: 0,
-          sophomores: 0,
-          juniors: 0,
-          seniors: 0,
+          freshmen:   Math.round((b.freshmen   / total) * 100),
+          sophomores: Math.round((b.sophomores / total) * 100),
+          juniors:    Math.round((b.juniors    / total) * 100),
+          seniors:    Math.round((b.seniors    / total) * 100),
         };
-      }
-      return {
-        term,
-        freshmen: Math.round((stats.freshmen / total) * 100),
-        sophomores: Math.round((stats.sophomores / total) * 100),
-        juniors: Math.round((stats.juniors / total) * 100),
-        seniors: Math.round((stats.seniors / total) * 100),
-      };
-    });
+      });
 
     return NextResponse.json({
       yearlyData,
